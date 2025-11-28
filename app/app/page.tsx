@@ -1,0 +1,378 @@
+"use client"
+
+import React, { useState, useMemo, ChangeEvent } from 'react';
+import { BookOpen, User, Calendar, RotateCcw } from 'lucide-react';
+
+// --- TYPES ---
+
+interface SystemMap {
+  [key: string]: number;
+}
+
+interface Inputs {
+  day: string;
+  month: string;
+  year: string;
+  birthName: string;
+  schoolName: string;
+  currentName: string;
+}
+
+interface ReportItem {
+  id: number;
+  name: string;
+  val: number | number[] | string;
+  desc: string;
+}
+
+// --- CONSTANTS & DATA ---
+
+// Pythagorean System: 1-9
+const PYTHAGOREAN: Record<number, string[]> = {
+  1: ['A', 'J', 'S'],
+  2: ['B', 'K', 'T'],
+  3: ['C', 'L', 'U'],
+  4: ['D', 'M', 'V'],
+  5: ['E', 'N', 'W'],
+  6: ['F', 'O', 'X'],
+  7: ['G', 'P', 'Y'],
+  8: ['H', 'Q', 'Z'],
+  9: ['I', 'R']
+};
+
+// Chaldean System: 1-8 (No 9)
+const CHALDEAN: Record<number, string[]> = {
+  1: ['A', 'I', 'J', 'Q', 'Y'],
+  2: ['B', 'K', 'R'],
+  3: ['C', 'G', 'L', 'S'],
+  4: ['D', 'M', 'T'],
+  5: ['E', 'H', 'N', 'X'],
+  6: ['U', 'V', 'W'],
+  7: ['O', 'Z'],
+  8: ['F', 'P']
+};
+
+const VOWELS: string[] = ['A', 'E', 'I', 'O', 'U'];
+const MONTHS: string[] = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const DESCRIPTIONS: Record<string, string> = {
+  perception: "How you perceive the world through the lens of your birth date.",
+  innerChild: "The playful, authentic core of your personality hidden within your birth name.",
+  impression: "The immediate vibe you give off to others based on your current name.",
+  heartsDesire: "The underlying motivation and deepest cravings of your soul.",
+  soulGuidance: "Inner wisdom directing your current path.",
+  contribution: "What you are here to give back to the world.",
+  power: "The strength you wield when your life path aligns with your current identity.",
+  karmicLessons: "Weaknesses or lessons you must learn in this lifetime.",
+  untappedPotential: "Latent abilities from your schooling years waiting to be activated.",
+  directingModifier: "The initial impulse behind your actions (Birth Name).",
+  foundation: "The bedrock of your current identity.",
+  firstEmotional: "Your initial emotional response to stimuli.",
+  secretive: "Hidden aspects of your emotional world.",
+  finishing: "How you conclude projects and chapters in life.",
+  destination: "The ultimate direction your current name is steering you towards.",
+  latentTalent: "Your most frequent and natural capability.",
+  innerFire: "The burning passion that fuels your current endeavors.",
+  copingStyle: "How you instinctively handle stress and challenges.",
+  crisisResponse: "Your emergency reaction mechanism.",
+  mentalApproach: "How your mind processes information combining birth identity and time.",
+  thoughtProcess: "Your current cognitive style.",
+  anchor: "The grounding force of your birth identity.",
+  reliability: "How dependable you appear in your current life."
+};
+
+// --- HELPER FUNCTIONS ---
+
+const createMap = (system: Record<number, string[]>): SystemMap => {
+  const map: SystemMap = {};
+  Object.entries(system).forEach(([num, letters]) => {
+    letters.forEach(char => map[char] = parseInt(num));
+  });
+  return map;
+};
+
+const PYTH_MAP = createMap(PYTHAGOREAN);
+const CHAL_MAP = createMap(CHALDEAN);
+
+const cleanString = (str: string): string => str.toUpperCase().replace(/[^A-Z]/g, '');
+const cleanStringWithSpaces = (str: string): string => str.toUpperCase().replace(/[^A-Z ]/g, '').replace(/\s+/g, ' ').trim();
+const getCharValue = (char: string, systemMap: SystemMap): number => systemMap[char] || 0;
+
+const reduceNumber = (num: number): number => {
+  if (num === 0) return 0;
+  let n = num;
+  while (n > 9 && n !== 11 && n !== 22) {
+    n = String(n).split('').reduce((acc, curr) => acc + parseInt(curr), 0);
+  }
+  return n;
+};
+
+const forceReduce = (num: number): number => {
+  if (num === 0) return 0;
+  let n = num;
+  while (n > 9) {
+    n = String(n).split('').reduce((acc, curr) => acc + parseInt(curr), 0);
+  }
+  return n;
+};
+
+const formatNumber = (num: number | number[] | string): string => {
+  if (Array.isArray(num)) return num.join(', ');
+  if (num === 11) return "11/2";
+  if (num === 22) return "22/4";
+  return num.toString();
+};
+
+const isVowel = (char: string): boolean => VOWELS.includes(char);
+
+// --- MAIN COMPONENT ---
+
+export default function NumeroScope() {
+  // App State
+  const [inputs, setInputs] = useState<Inputs>({
+    day: '', month: '', year: '', birthName: '', schoolName: '', currentName: ''
+  });
+  const [showReport, setShowReport] = useState<boolean>(false);
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setInputs(prev => ({ ...prev, [name]: value }));
+  };
+
+  // --- CALCULATION LOGIC (Memoized) ---
+  const calculate = useMemo<ReportItem[] | null>(() => {
+    if (!inputs.day || !inputs.month || !inputs.year || !inputs.birthName || !inputs.currentName || !inputs.schoolName) return null;
+
+    const dayRaw = parseInt(inputs.day);
+    const monthRaw = parseInt(inputs.month);
+    const yearRaw = parseInt(inputs.year);
+
+    if (isNaN(dayRaw) || isNaN(monthRaw) || isNaN(yearRaw)) return null;
+    if (dayRaw < 1 || dayRaw > 31 || monthRaw < 1 || monthRaw > 12 || yearRaw < 1000 || yearRaw > 9999) return null;
+
+    const birthNameClean = cleanStringWithSpaces(inputs.birthName);
+    const schoolNameClean = cleanStringWithSpaces(inputs.schoolName);
+    const currentNameClean = cleanStringWithSpaces(inputs.currentName);
+    
+    const birthNameParts = birthNameClean.split(' ');
+    const currentNameParts = currentNameClean.split(' ');
+    
+    const firstNameBirth = birthNameParts[0] || "";
+    const lastNameBirth = birthNameParts[birthNameParts.length - 1] || "";
+    const firstNameCurrent = currentNameParts[0] || "";
+    const lastNameCurrent = currentNameParts[currentNameParts.length - 1] || "";
+
+    const dayNumber = forceReduce(dayRaw);
+    const monthNumber = forceReduce(monthRaw);
+    const yearNumber = forceReduce(yearRaw);
+    const lifePath = forceReduce(dayNumber + monthNumber + yearNumber); 
+
+    const calculateSum = (text: string, systemMap: SystemMap, filter: 'all' | 'vowel' | 'consonant' = 'all'): number => {
+      const clean = cleanString(text);
+      let sum = 0;
+      for (let char of clean) {
+        if (filter === 'vowel' && !isVowel(char)) continue;
+        if (filter === 'consonant' && isVowel(char)) continue;
+        sum += getCharValue(char, systemMap);
+      }
+      return sum;
+    };
+
+    const getMode = (text: string, systemMap: SystemMap): number[] => {
+        const clean = cleanString(text);
+        const counts: Record<number, number> = {};
+        let maxCount = 0;
+        
+        for (let char of clean) {
+            const val = getCharValue(char, systemMap);
+            if(val === 0) continue;
+            counts[val] = (counts[val] || 0) + 1;
+            if (counts[val] > maxCount) maxCount = counts[val];
+        }
+        
+        const modes = Object.keys(counts)
+            .filter(k => counts[parseInt(k)] === maxCount)
+            .map(Number)
+            .sort((a,b) => a-b);
+            
+        return modes.length > 0 ? modes : [0];
+    };
+
+    const getMissing = (text: string, systemMap: SystemMap, maxVal: number): (number | string)[] => {
+        const clean = cleanString(text);
+        const present = new Set<number>();
+        for (let char of clean) {
+            present.add(getCharValue(char, systemMap));
+        }
+        const missing: number[] = [];
+        for (let i = 1; i <= maxVal; i++) {
+            if (!present.has(i)) missing.push(i);
+        }
+        return missing.length > 0 ? missing : ["None"];
+    };
+
+    const getInitialsSum = (textWithSpaces: string, systemMap: SystemMap): number => {
+        const parts = textWithSpaces.split(' ');
+        let sum = 0;
+        parts.forEach(p => { if (p.length > 0) sum += getCharValue(p[0], systemMap); });
+        return sum;
+    };
+    
+    // --- REPORT ITEM CALCULATIONS ---
+    const perception = reduceNumber(dayRaw + monthRaw);
+    const innerChild = reduceNumber(calculateSum(birthNameClean, PYTH_MAP, 'consonant'));
+    const impression = reduceNumber(calculateSum(currentNameClean, CHAL_MAP, 'consonant'));
+    const heartsDesire = reduceNumber(calculateSum(birthNameClean, PYTH_MAP, 'vowel'));
+    const soulGuidance = reduceNumber(calculateSum(currentNameClean, CHAL_MAP, 'vowel'));
+    const contribution = reduceNumber(lifePath + forceReduce(calculateSum(currentNameClean, PYTH_MAP)));
+    const power = reduceNumber(lifePath + forceReduce(calculateSum(currentNameClean, CHAL_MAP)));
+    const karmicLessons = getMissing(birthNameClean, PYTH_MAP, 9);
+    const untappedPotential = getMissing(schoolNameClean, CHAL_MAP, 8);
+    const directingModifier = firstNameBirth ? reduceNumber(getCharValue(firstNameBirth[0], PYTH_MAP)) : 0;
+    const foundation = firstNameCurrent ? reduceNumber(getCharValue(firstNameCurrent[0], CHAL_MAP)) : 0;
+    
+    const getFirstVowelVal = (name: string, map: SystemMap): number => {
+        const match = name.split('').find(c => isVowel(c));
+        return match ? getCharValue(match, map) : 0;
+    };
+    
+    const firstEmotional = reduceNumber(getFirstVowelVal(firstNameBirth, PYTH_MAP));
+    const secretive = reduceNumber(getFirstVowelVal(firstNameCurrent, CHAL_MAP));
+    const finishing = lastNameBirth ? reduceNumber(getCharValue(lastNameBirth[lastNameBirth.length - 1], PYTH_MAP)) : 0;
+    const destination = lastNameCurrent ? reduceNumber(getCharValue(lastNameCurrent[lastNameCurrent.length - 1], CHAL_MAP)) : 0;
+    const latentTalent = getMode(birthNameClean, PYTH_MAP);
+    const innerFire = getMode(currentNameClean, CHAL_MAP);
+    const copingStyle = reduceNumber(getInitialsSum(birthNameClean, PYTH_MAP));
+    const crisisResponse = reduceNumber(getInitialsSum(currentNameClean, CHAL_MAP));
+    const mentalApproach = reduceNumber(forceReduce(calculateSum(firstNameBirth, PYTH_MAP)) + dayNumber);
+    const thoughtProcess = reduceNumber(forceReduce(calculateSum(firstNameCurrent, CHAL_MAP)) + dayNumber);
+    const anchor = reduceNumber(cleanString(birthNameClean).length);
+    const reliability = reduceNumber(cleanString(currentNameClean).length);
+
+    return [
+      { id: 1, name: "Perception Number", val: perception, desc: DESCRIPTIONS.perception },
+      { id: 2, name: "Inner Child Number", val: innerChild, desc: DESCRIPTIONS.innerChild },
+      { id: 3, name: "Impression Number", val: impression, desc: DESCRIPTIONS.impression },
+      { id: 4, name: "Heart's Desire Number", val: heartsDesire, desc: DESCRIPTIONS.heartsDesire },
+      { id: 5, name: "Soul Inner Guidance", val: soulGuidance, desc: DESCRIPTIONS.soulGuidance },
+      { id: 6, name: "Contribution Number", val: contribution, desc: DESCRIPTIONS.contribution },
+      { id: 7, name: "Power Number", val: power, desc: DESCRIPTIONS.power },
+      { id: 8, name: "Karmic Lesson Numbers", val: karmicLessons as number[], desc: DESCRIPTIONS.karmicLessons },
+      { id: 9, name: "Untapped Potential", val: untappedPotential as number[], desc: DESCRIPTIONS.untappedPotential },
+      { id: 10, name: "Directing Modifier", val: directingModifier, desc: DESCRIPTIONS.directingModifier },
+      { id: 11, name: "Foundation Number", val: foundation, desc: DESCRIPTIONS.foundation },
+      { id: 12, name: "First Emotional Reaction", val: firstEmotional, desc: DESCRIPTIONS.firstEmotional },
+      { id: 13, name: "Secretive Number", val: secretive, desc: DESCRIPTIONS.secretive },
+      { id: 14, name: "Finishing Number", val: finishing, desc: DESCRIPTIONS.finishing },
+      { id: 15, name: "Destination Number", val: destination, desc: DESCRIPTIONS.destination },
+      { id: 16, name: "Latent Talent Number", val: latentTalent, desc: DESCRIPTIONS.latentTalent },
+      { id: 17, name: "Inner Fire Number", val: innerFire, desc: DESCRIPTIONS.innerFire },
+      { id: 18, name: "Coping Style Number", val: copingStyle, desc: DESCRIPTIONS.copingStyle },
+      { id: 19, name: "Crisis Response Number", val: crisisResponse, desc: DESCRIPTIONS.crisisResponse },
+      { id: 20, name: "Mental Approach Number", val: mentalApproach, desc: DESCRIPTIONS.mentalApproach },
+      { id: 21, name: "Thought Process Number", val: thoughtProcess, desc: DESCRIPTIONS.thoughtProcess },
+      { id: 22, name: "Anchor Number", val: anchor, desc: DESCRIPTIONS.anchor },
+      { id: 23, name: "Reliability Number", val: reliability, desc: DESCRIPTIONS.reliability },
+    ];
+  }, [inputs]);
+
+  // --- RENDER ---
+  return (
+    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-purple-500 selection:text-white pb-20">
+      
+      {/* Header */}
+      <header className="bg-slate-950 border-b border-slate-800 p-6 shadow-lg">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-300 via-teal-200 to-amber-200 bg-clip-text text-transparent">
+              NumeroScope
+            </h1>
+          </div>
+          <button 
+            onClick={() => { setInputs({ day: '', month: '', year: '', birthName: '', schoolName: '', currentName: '' }); setShowReport(false); }}
+            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+          >
+            <RotateCcw size={16} />
+            <span className="text-sm font-medium">Reset</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto p-6">
+        
+        {/* Input Form */}
+        <section className={`transition-all duration-500 ease-in-out ${showReport ? 'mb-8 opacity-100' : 'min-h-[60vh] flex items-center justify-center opacity-100'}`}>
+          <div className={`w-full ${showReport ? 'bg-slate-800/50 p-6 rounded-xl border border-slate-700/50' : 'max-w-2xl bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700'}`}>
+            
+            <div className={`grid gap-6 ${showReport ? 'grid-cols-1 md:grid-cols-4' : 'grid-cols-1'}`}>
+              
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-teal-300">
+                  <Calendar size={16} /> Date of Birth
+                </label>
+                <div className="flex gap-2">
+                  <input type="number" name="day" placeholder="Day" min={1} max={31} value={inputs.day} onChange={handleInputChange} className="w-1/4 bg-slate-900 border border-slate-600 rounded-lg px-3 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-center text-slate-100 placeholder:text-slate-500"/>
+                  <select name="month" value={inputs.month} onChange={handleInputChange} className="w-2/4 bg-slate-900 border border-slate-600 rounded-lg px-3 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-slate-100">
+                    <option value="" disabled>Month</option>
+                    {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                  </select>
+                  <input type="number" name="year" placeholder="Year" min={1900} max={2100} value={inputs.year} onChange={handleInputChange} className="w-1/4 bg-slate-900 border border-slate-600 rounded-lg px-3 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-center text-slate-100 placeholder:text-slate-500"/>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-purple-300"><User size={16} /> Birth Name</label>
+                <input type="text" name="birthName" placeholder="Full Birth Certificate Name" value={inputs.birthName} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-slate-100 placeholder:text-slate-500"/>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-amber-300"><BookOpen size={16} /> School Name</label>
+                <input type="text" name="schoolName" placeholder="Childhood School Name" value={inputs.schoolName} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-slate-100 placeholder:text-slate-500"/>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-indigo-300"><User size={16} /> Current Name</label>
+                <input type="text" name="currentName" placeholder="Name known for longer" value={inputs.currentName} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-slate-100 placeholder:text-slate-500"/>
+              </div>
+            </div>
+
+            {!showReport && (
+              <button onClick={() => calculate ? setShowReport(true) : alert("Please fill all fields correctly")} disabled={!calculate} className="w-full mt-8 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-900/40 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                Submit
+              </button>
+            )}
+          </div>
+        </section>
+
+        {showReport && calculate && (
+          <div className="animate-in fade-in slide-in-from-bottom-10 duration-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {calculate.map((item) => (
+                <div key={item.id} className="group relative bg-slate-800 border border-slate-600 hover:border-purple-500/50 rounded-xl p-5 transition-all duration-300 hover:shadow-xl hover:shadow-purple-900/10 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="text-teal-400 text-xs font-bold uppercase tracking-wider">{item.name}</h4>
+                      <span className="text-xs text-slate-500 font-mono">#{item.id}</span>
+                    </div>
+                    <p className="text-sm text-slate-300 leading-relaxed mb-4 font-medium">{item.desc}</p>
+                  </div>
+                  <div className="mt-2 pt-4 border-t border-slate-700 flex items-center justify-end">
+                    <div className="text-3xl font-light text-white font-mono bg-slate-900 px-4 py-1 rounded-lg border border-slate-600 shadow-inner min-w-[3rem] text-center group-hover:border-purple-500/30 group-hover:text-purple-100 transition-colors">
+                      {formatNumber(item.val)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-12 text-center">
+               <p className="text-slate-500 text-sm">Calculations based on Pythagorean and Chaldean systems. <br/>Master numbers 11 and 22 are preserved.</p>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
