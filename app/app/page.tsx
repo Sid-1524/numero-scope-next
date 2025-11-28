@@ -105,18 +105,8 @@ const getCharValue = (char: string, systemMap: SystemMap): number => systemMap[c
 const reduceNumber = (num: number): number => {
   if (num === 0) return 0;
   let n = num;
-  // EDITED: Added "&& n !== 33" to preserve Master Number 33
+  // Keep reducing ONLY if it's NOT a master number (11, 22, 33) AND implies further reduction
   while (n > 9 && n !== 11 && n !== 22 && n !== 33) {
-    n = String(n).split('').reduce((acc, curr) => acc + parseInt(curr), 0);
-  }
-  return n;
-};
-
-// Helper to fully reduce to 1-9
-const forceReduce = (num: number): number => {
-  if (num === 0) return 0;
-  let n = num;
-  while (n > 9) {
     n = String(n).split('').reduce((acc, curr) => acc + parseInt(curr), 0);
   }
   return n;
@@ -124,9 +114,6 @@ const forceReduce = (num: number): number => {
 
 const formatNumber = (num: number | number[] | string): string => {
   if (Array.isArray(num)) return num.join(', ');
-  if (num === 11) return "11/2";
-  if (num === 22) return "22/4";
-  if (num === 33) return "33/6"; // EDITED: Added support for 33
   return num.toString();
 };
 
@@ -169,7 +156,9 @@ export default function NumeroScope() {
     const firstNameCurrent = currentNameParts[0] || "";
     const lastNameCurrent = currentNameParts[currentNameParts.length - 1] || "";
 
-    // EDITED: Use reduceNumber to ensure 11/22/33 are kept in day/month/year sums
+    // Intermediate variables (Reduced for calculation purposes, or kept for consistency)
+    // We keep these reduced to calculate a stable "Life Path" for intermediate formulas,
+    // but the output numbers below will use raw logic where requested.
     const dayNumber = reduceNumber(dayRaw);
     const monthNumber = reduceNumber(monthRaw);
     const yearNumber = reduceNumber(yearRaw);
@@ -226,42 +215,62 @@ export default function NumeroScope() {
         return sum;
     };
     
-    // --- REPORT ITEM CALCULATIONS ---
-    const perception = reduceNumber(dayRaw + monthRaw);
-    const innerChild = reduceNumber(calculateSum(birthNameClean, PYTH_MAP, 'consonant'));
-    const impression = reduceNumber(calculateSum(currentNameClean, CHAL_MAP, 'consonant'));
-    const heartsDesire = reduceNumber(calculateSum(birthNameClean, PYTH_MAP, 'vowel'));
-    const soulGuidance = reduceNumber(calculateSum(currentNameClean, CHAL_MAP, 'vowel'));
+    // --- REPORT ITEM CALCULATIONS (DISPLAYING RAW SUMS) ---
     
-    // EDITED: Ensure we reduce components first to find masters, then sum, then reduce total
-    const contribution = reduceNumber(lifePath + reduceNumber(calculateSum(currentNameClean, PYTH_MAP)));
-    const power = reduceNumber(lifePath + reduceNumber(calculateSum(currentNameClean, CHAL_MAP)));
+    // 1. Perception: Sum of date and month (Raw)
+    const perception = dayRaw + monthRaw;
     
+    // 2. Inner Child: Sum of all consonants (Raw)
+    const innerChild = calculateSum(birthNameClean, PYTH_MAP, 'consonant');
+    
+    // 3. Impression: Sum of all consonants (Raw)
+    const impression = calculateSum(currentNameClean, CHAL_MAP, 'consonant');
+    
+    // 4. Heart's Desire: Sum of all vowels (Raw)
+    const heartsDesire = calculateSum(birthNameClean, PYTH_MAP, 'vowel');
+    
+    // 5. Soul Inner Guidance: Sum of all vowels (Raw)
+    const soulGuidance = calculateSum(currentNameClean, CHAL_MAP, 'vowel');
+    
+    // 6. Contribution: Life Path (Reduced) + Name Sum (Raw) -> Display Raw Total
+    const contribution = lifePath + calculateSum(currentNameClean, PYTH_MAP);
+    
+    // 7. Power: Life Path (Reduced) + Name Sum (Raw) -> Display Raw Total
+    const power = lifePath + calculateSum(currentNameClean, CHAL_MAP);
+    
+    // 8-9. Arrays (No change needed)
     const karmicLessons = getMissing(birthNameClean, PYTH_MAP, 9);
     const untappedPotential = getMissing(schoolNameClean, CHAL_MAP, 8);
-    const directingModifier = firstNameBirth ? reduceNumber(getCharValue(firstNameBirth[0], PYTH_MAP)) : 0;
-    const foundation = firstNameCurrent ? reduceNumber(getCharValue(firstNameCurrent[0], CHAL_MAP)) : 0;
+    
+    // 10-15. Single letter/vowel values (Naturally 1-9 or small number, no reduction needed)
+    const directingModifier = firstNameBirth ? getCharValue(firstNameBirth[0], PYTH_MAP) : 0;
+    const foundation = firstNameCurrent ? getCharValue(firstNameCurrent[0], CHAL_MAP) : 0;
     
     const getFirstVowelVal = (name: string, map: SystemMap): number => {
         const match = name.split('').find(c => isVowel(c));
         return match ? getCharValue(match, map) : 0;
     };
     
-    const firstEmotional = reduceNumber(getFirstVowelVal(firstNameBirth, PYTH_MAP));
-    const secretive = reduceNumber(getFirstVowelVal(firstNameCurrent, CHAL_MAP));
-    const finishing = lastNameBirth ? reduceNumber(getCharValue(lastNameBirth[lastNameBirth.length - 1], PYTH_MAP)) : 0;
-    const destination = lastNameCurrent ? reduceNumber(getCharValue(lastNameCurrent[lastNameCurrent.length - 1], CHAL_MAP)) : 0;
+    const firstEmotional = getFirstVowelVal(firstNameBirth, PYTH_MAP);
+    const secretive = getFirstVowelVal(firstNameCurrent, CHAL_MAP);
+    const finishing = lastNameBirth ? getCharValue(lastNameBirth[lastNameBirth.length - 1], PYTH_MAP) : 0;
+    const destination = lastNameCurrent ? getCharValue(lastNameCurrent[lastNameCurrent.length - 1], CHAL_MAP) : 0;
+    
+    // 16-17. Mode (Already raw)
     const latentTalent = getMode(birthNameClean, PYTH_MAP);
     const innerFire = getMode(currentNameClean, CHAL_MAP);
-    const copingStyle = reduceNumber(getInitialsSum(birthNameClean, PYTH_MAP));
-    const crisisResponse = reduceNumber(getInitialsSum(currentNameClean, CHAL_MAP));
     
-    // EDITED: Ensure masters are preserved in addition
-    const mentalApproach = reduceNumber(reduceNumber(calculateSum(firstNameBirth, PYTH_MAP)) + dayNumber);
-    const thoughtProcess = reduceNumber(reduceNumber(calculateSum(firstNameCurrent, CHAL_MAP)) + dayNumber);
+    // 18-19. Sum of Initials (Raw)
+    const copingStyle = getInitialsSum(birthNameClean, PYTH_MAP);
+    const crisisResponse = getInitialsSum(currentNameClean, CHAL_MAP);
     
-    const anchor = reduceNumber(cleanString(birthNameClean).length);
-    const reliability = reduceNumber(cleanString(currentNameClean).length);
+    // 20-21. Mental/Thought: Raw Name Sum + Reduced Day -> Display Raw Total
+    const mentalApproach = calculateSum(firstNameBirth, PYTH_MAP) + dayNumber;
+    const thoughtProcess = calculateSum(firstNameCurrent, CHAL_MAP) + dayNumber;
+    
+    // 22-23. Count of letters (Raw)
+    const anchor = cleanString(birthNameClean).length;
+    const reliability = cleanString(currentNameClean).length;
 
     return [
       { id: 1, name: "Perception Number", val: perception, desc: DESCRIPTIONS.perception },
@@ -290,18 +299,16 @@ export default function NumeroScope() {
     ];
   }, [inputs]);
 
-
-  const handleLogout = async () => {
+const handleLogout = async () => {
         try {
             const response = await fetch('/api/logout', { method: 'POST' });
             if (response.ok) {
                 window.location.href = '/';
             } else {
-                // If API fails (e.g. static export), just reload/reset
-                window.location.reload();
+                alert('Logout failed');
             }
         } catch (error) {
-            window.location.reload();
+            alert('An error occurred during logout');
         }
     }
 
@@ -328,10 +335,10 @@ export default function NumeroScope() {
             <div className="h-6 w-px bg-slate-700"></div>
             <button 
                 onClick={() => { handleLogout(); }}
-                className="flex items-center gap-2 text-red-500 hover:text-red-400 transition-colors"
+                className="flex items-center gap-2 text-red-500 hover:text-red-400 transition-colors font-medium"
             >
                 <LogOut size={16} />
-                <span className="text-sm font-medium">Logout</span>
+                <span>Logout</span>
             </button>
           </div>
         </div>
@@ -404,7 +411,7 @@ export default function NumeroScope() {
               ))}
             </div>
             <div className="mt-12 text-center">
-               <p className="text-slate-500 text-sm">Calculations based on Pythagorean and Chaldean systems. <br/>Master numbers 11, 22, and 33 are preserved.</p>
+               <p className="text-slate-500 text-sm">Calculations based on Pythagorean and Chaldean systems. <br/>Raw sums displayed for detailed analysis.</p>
             </div>
           </div>
         )}
