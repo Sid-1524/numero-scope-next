@@ -101,17 +101,18 @@ const cleanString = (str: string): string => str.toUpperCase().replace(/[^A-Z]/g
 const cleanStringWithSpaces = (str: string): string => str.toUpperCase().replace(/[^A-Z ]/g, '').replace(/\s+/g, ' ').trim();
 const getCharValue = (char: string, systemMap: SystemMap): number => systemMap[char] || 0;
 
-// Main reduction logic: Preserves 11 and 22
+// Main reduction logic: Preserves 11, 22, and 33
 const reduceNumber = (num: number): number => {
   if (num === 0) return 0;
   let n = num;
-  while (n > 9 && n !== 11 && n !== 22) {
+  // EDITED: Added "&& n !== 33" to preserve Master Number 33
+  while (n > 9 && n !== 11 && n !== 22 && n !== 33) {
     n = String(n).split('').reduce((acc, curr) => acc + parseInt(curr), 0);
   }
   return n;
 };
 
-// Helper to fully reduce to 1-9 (only used when strictly required by logic, otherwise we prefer reduceNumber)
+// Helper to fully reduce to 1-9
 const forceReduce = (num: number): number => {
   if (num === 0) return 0;
   let n = num;
@@ -125,6 +126,7 @@ const formatNumber = (num: number | number[] | string): string => {
   if (Array.isArray(num)) return num.join(', ');
   if (num === 11) return "11/2";
   if (num === 22) return "22/4";
+  if (num === 33) return "33/6"; // EDITED: Added support for 33
   return num.toString();
 };
 
@@ -167,7 +169,7 @@ export default function NumeroScope() {
     const firstNameCurrent = currentNameParts[0] || "";
     const lastNameCurrent = currentNameParts[currentNameParts.length - 1] || "";
 
-    // UPDATED: Use reduceNumber instead of forceReduce to preserve 11/22 in core variables
+    // EDITED: Use reduceNumber to ensure 11/22/33 are kept in day/month/year sums
     const dayNumber = reduceNumber(dayRaw);
     const monthNumber = reduceNumber(monthRaw);
     const yearNumber = reduceNumber(yearRaw);
@@ -225,14 +227,13 @@ export default function NumeroScope() {
     };
     
     // --- REPORT ITEM CALCULATIONS ---
-    // Note: Used reduceNumber everywhere possible to ensure 11/22 are caught if they appear
     const perception = reduceNumber(dayRaw + monthRaw);
     const innerChild = reduceNumber(calculateSum(birthNameClean, PYTH_MAP, 'consonant'));
     const impression = reduceNumber(calculateSum(currentNameClean, CHAL_MAP, 'consonant'));
     const heartsDesire = reduceNumber(calculateSum(birthNameClean, PYTH_MAP, 'vowel'));
     const soulGuidance = reduceNumber(calculateSum(currentNameClean, CHAL_MAP, 'vowel'));
     
-    // Updated: Allow master numbers in name sum to be added to life path
+    // EDITED: Ensure we reduce components first to find masters, then sum, then reduce total
     const contribution = reduceNumber(lifePath + reduceNumber(calculateSum(currentNameClean, PYTH_MAP)));
     const power = reduceNumber(lifePath + reduceNumber(calculateSum(currentNameClean, CHAL_MAP)));
     
@@ -255,7 +256,7 @@ export default function NumeroScope() {
     const copingStyle = reduceNumber(getInitialsSum(birthNameClean, PYTH_MAP));
     const crisisResponse = reduceNumber(getInitialsSum(currentNameClean, CHAL_MAP));
     
-    // Updated: Allow master numbers in components
+    // EDITED: Ensure masters are preserved in addition
     const mentalApproach = reduceNumber(reduceNumber(calculateSum(firstNameBirth, PYTH_MAP)) + dayNumber);
     const thoughtProcess = reduceNumber(reduceNumber(calculateSum(firstNameCurrent, CHAL_MAP)) + dayNumber);
     
@@ -296,10 +297,11 @@ export default function NumeroScope() {
             if (response.ok) {
                 window.location.href = '/';
             } else {
-                alert('Logout failed');
+                // If API fails (e.g. static export), just reload/reset
+                window.location.reload();
             }
         } catch (error) {
-            alert('An error occurred during logout');
+            window.location.reload();
         }
     }
 
@@ -402,7 +404,7 @@ export default function NumeroScope() {
               ))}
             </div>
             <div className="mt-12 text-center">
-               <p className="text-slate-500 text-sm">Calculations based on Pythagorean and Chaldean systems. <br/>Master numbers 11 and 22 are preserved.</p>
+               <p className="text-slate-500 text-sm">Calculations based on Pythagorean and Chaldean systems. <br/>Master numbers 11, 22, and 33 are preserved.</p>
             </div>
           </div>
         )}
