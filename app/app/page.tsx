@@ -328,8 +328,7 @@ export default function NumeroScope() {
         } catch (error) {
             alert('An error occurred during logout');
         }
-    }
-  };
+    };
 
   // --- RENDER ---
   return (
