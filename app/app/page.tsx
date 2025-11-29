@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, ChangeEvent } from 'react';
-import { BookOpen, User, Calendar, RotateCcw, LogOut } from 'lucide-react';
+import React, { useState, useMemo, ChangeEvent, useEffect } from 'react';
+import { BookOpen, User, Calendar, RotateCcw, LogOut, Sun, Moon } from 'lucide-react';
 
 // --- TYPES ---
 
@@ -114,6 +114,9 @@ const reduceNumber = (num: number): number => {
 
 const formatNumber = (num: number | number[] | string): string => {
   if (Array.isArray(num)) return num.join(', ');
+  if (num === 11) return "11/2";
+  if (num === 22) return "22/4";
+  if (num === 33) return "33/6";
   return num.toString();
 };
 
@@ -127,6 +130,31 @@ export default function NumeroScope() {
     day: '', month: '', year: '', birthName: '', schoolName: '', currentName: ''
   });
   const [showReport, setShowReport] = useState<boolean>(false);
+  const [darkMode, setDarkMode] = useState<boolean>(true);
+
+  // --- THEME HANDLER ---
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('numeroscope-theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme === 'light') {
+      setDarkMode(false);
+    } else if (savedTheme === 'dark') {
+      setDarkMode(true);
+    } else {
+      setDarkMode(systemPrefersDark);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('numeroscope-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('numeroscope-theme', 'light');
+    }
+  }, [darkMode]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -156,9 +184,7 @@ export default function NumeroScope() {
     const firstNameCurrent = currentNameParts[0] || "";
     const lastNameCurrent = currentNameParts[currentNameParts.length - 1] || "";
 
-    // Intermediate variables (Reduced for calculation purposes, or kept for consistency)
-    // We keep these reduced to calculate a stable "Life Path" for intermediate formulas,
-    // but the output numbers below will use raw logic where requested.
+    // 1. Core Variables (Reduced)
     const dayNumber = reduceNumber(dayRaw);
     const monthNumber = reduceNumber(monthRaw);
     const yearNumber = reduceNumber(yearRaw);
@@ -215,62 +241,54 @@ export default function NumeroScope() {
         return sum;
     };
     
-    // --- REPORT ITEM CALCULATIONS (DISPLAYING RAW SUMS) ---
+    // --- REPORT ITEM CALCULATIONS (REDUCED) ---
+    // All calculations are now wrapped in reduceNumber()
     
-    // 1. Perception: Sum of date and month (Raw)
-    const perception = dayRaw + monthRaw;
+    // 1. Perception
+    const perception = reduceNumber(dayRaw + monthRaw);
     
-    // 2. Inner Child: Sum of all consonants (Raw)
-    const innerChild = calculateSum(birthNameClean, PYTH_MAP, 'consonant');
+    // 2-5. Name Sums
+    const innerChild = reduceNumber(calculateSum(birthNameClean, PYTH_MAP, 'consonant'));
+    const impression = reduceNumber(calculateSum(currentNameClean, CHAL_MAP, 'consonant'));
+    const heartsDesire = reduceNumber(calculateSum(birthNameClean, PYTH_MAP, 'vowel'));
+    const soulGuidance = reduceNumber(calculateSum(currentNameClean, CHAL_MAP, 'vowel'));
     
-    // 3. Impression: Sum of all consonants (Raw)
-    const impression = calculateSum(currentNameClean, CHAL_MAP, 'consonant');
+    // 6-7. Contribution & Power
+    const contribution = reduceNumber(lifePath + reduceNumber(calculateSum(currentNameClean, PYTH_MAP)));
+    const power = reduceNumber(lifePath + reduceNumber(calculateSum(currentNameClean, CHAL_MAP)));
     
-    // 4. Heart's Desire: Sum of all vowels (Raw)
-    const heartsDesire = calculateSum(birthNameClean, PYTH_MAP, 'vowel');
-    
-    // 5. Soul Inner Guidance: Sum of all vowels (Raw)
-    const soulGuidance = calculateSum(currentNameClean, CHAL_MAP, 'vowel');
-    
-    // 6. Contribution: Life Path (Reduced) + Name Sum (Raw) -> Display Raw Total
-    const contribution = lifePath + calculateSum(currentNameClean, PYTH_MAP);
-    
-    // 7. Power: Life Path (Reduced) + Name Sum (Raw) -> Display Raw Total
-    const power = lifePath + calculateSum(currentNameClean, CHAL_MAP);
-    
-    // 8-9. Arrays (No change needed)
     const karmicLessons = getMissing(birthNameClean, PYTH_MAP, 9);
     const untappedPotential = getMissing(schoolNameClean, CHAL_MAP, 8);
     
-    // 10-15. Single letter/vowel values (Naturally 1-9 or small number, no reduction needed)
-    const directingModifier = firstNameBirth ? getCharValue(firstNameBirth[0], PYTH_MAP) : 0;
-    const foundation = firstNameCurrent ? getCharValue(firstNameCurrent[0], CHAL_MAP) : 0;
+    // 10-15. Single letter values (Already small, but reducing for safety)
+    const directingModifier = firstNameBirth ? reduceNumber(getCharValue(firstNameBirth[0], PYTH_MAP)) : 0;
+    const foundation = firstNameCurrent ? reduceNumber(getCharValue(firstNameCurrent[0], CHAL_MAP)) : 0;
     
     const getFirstVowelVal = (name: string, map: SystemMap): number => {
         const match = name.split('').find(c => isVowel(c));
         return match ? getCharValue(match, map) : 0;
     };
     
-    const firstEmotional = getFirstVowelVal(firstNameBirth, PYTH_MAP);
-    const secretive = getFirstVowelVal(firstNameCurrent, CHAL_MAP);
-    const finishing = lastNameBirth ? getCharValue(lastNameBirth[lastNameBirth.length - 1], PYTH_MAP) : 0;
-    const destination = lastNameCurrent ? getCharValue(lastNameCurrent[lastNameCurrent.length - 1], CHAL_MAP) : 0;
-    
-    // 16-17. Mode (Already raw)
+    const firstEmotional = reduceNumber(getFirstVowelVal(firstNameBirth, PYTH_MAP));
+    const secretive = reduceNumber(getFirstVowelVal(firstNameCurrent, CHAL_MAP));
+    const finishing = lastNameBirth ? reduceNumber(getCharValue(lastNameBirth[lastNameBirth.length - 1], PYTH_MAP)) : 0;
+    const destination = lastNameCurrent ? reduceNumber(getCharValue(lastNameCurrent[lastNameCurrent.length - 1], CHAL_MAP)) : 0;
     const latentTalent = getMode(birthNameClean, PYTH_MAP);
     const innerFire = getMode(currentNameClean, CHAL_MAP);
     
-    // 18-19. Sum of Initials (Raw)
-    const copingStyle = getInitialsSum(birthNameClean, PYTH_MAP);
-    const crisisResponse = getInitialsSum(currentNameClean, CHAL_MAP);
+    // 18-19. Initials Sums
+    const copingStyle = reduceNumber(getInitialsSum(birthNameClean, PYTH_MAP));
+    const crisisResponse = reduceNumber(getInitialsSum(currentNameClean, CHAL_MAP));
     
-    // 20-21. Mental/Thought: Raw Name Sum + Reduced Day -> Display Raw Total
-    const mentalApproach = calculateSum(firstNameBirth, PYTH_MAP) + dayNumber;
-    const thoughtProcess = calculateSum(firstNameCurrent, CHAL_MAP) + dayNumber;
+    // 20-21. Mental/Thought: Reduce Name First + Reduced Day -> Reduce Final
+    const mentalApproach = reduceNumber(reduceNumber(calculateSum(firstNameBirth, PYTH_MAP)) + dayNumber);
+    const thoughtProcess = reduceNumber(reduceNumber(calculateSum(firstNameCurrent, CHAL_MAP)) + dayNumber);
     
-    // 22-23. Count of letters (Raw)
-    const anchor = cleanString(birthNameClean).length;
-    const reliability = cleanString(currentNameClean).length;
+    // 22. Anchor: (Sum of Values - Count) -> Reduced
+    const anchor = reduceNumber(calculateSum(birthNameClean, PYTH_MAP) - cleanString(birthNameClean).length);
+
+    // 23. Reliability: (Sum of Values - Count) -> Reduced
+    const reliability = reduceNumber(calculateSum(currentNameClean, CHAL_MAP) - cleanString(currentNameClean).length);
 
     return [
       { id: 1, name: "Perception Number", val: perception, desc: DESCRIPTIONS.perception },
@@ -299,7 +317,7 @@ export default function NumeroScope() {
     ];
   }, [inputs]);
 
-const handleLogout = async () => {
+  const handleLogout = async () => {
         try {
             const response = await fetch('/api/logout', { method: 'POST' });
             if (response.ok) {
@@ -311,31 +329,39 @@ const handleLogout = async () => {
             alert('An error occurred during logout');
         }
     }
+  };
 
   // --- RENDER ---
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-purple-500 selection:text-white pb-20">
+    <div className="min-h-screen font-sans transition-colors duration-300 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 selection:bg-purple-500 selection:text-white pb-20">
       
       {/* Header */}
-      <header className="bg-slate-950 border-b border-slate-800 p-6 shadow-lg">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-50 p-6 border-b shadow-lg bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-300 via-teal-200 to-amber-200 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold text-transparent bg-gradient-to-r from-purple-500 via-teal-500 to-amber-500 dark:from-purple-300 dark:via-teal-200 dark:to-amber-200 bg-clip-text">
               NumeroScope
             </h1>
           </div>
           <div className="flex items-center gap-4">
             <button 
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 transition-colors rounded-full text-slate-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              title="Toggle Theme"
+            >
+              {darkMode ? <Moon size={20} /> : <Sun size={20} />}
+            </button>
+            <button 
                 onClick={() => { setInputs({ day: '', month: '', year: '', birthName: '', schoolName: '', currentName: '' }); setShowReport(false); }}
-                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                className="flex items-center gap-2 transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
                 <RotateCcw size={16} />
                 <span className="text-sm font-medium">Reset</span>
             </button>
-            <div className="h-6 w-px bg-slate-700"></div>
+            <div className="w-px h-6 bg-slate-300 dark:bg-slate-700"></div>
             <button 
-                onClick={() => { handleLogout(); }}
-                className="flex items-center gap-2 text-red-500 hover:text-red-400 transition-colors font-medium"
+                onClick={() => handleLogout()}
+                className="flex items-center gap-2 font-medium transition-colors text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400"
             >
                 <LogOut size={16} />
                 <span>Logout</span>
@@ -344,46 +370,46 @@ const handleLogout = async () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-6">
+      <main className="max-w-6xl p-6 mx-auto">
         
         {/* Input Form */}
         <section className={`transition-all duration-500 ease-in-out ${showReport ? 'mb-8 opacity-100' : 'min-h-[60vh] flex items-center justify-center opacity-100'}`}>
-          <div className={`w-full ${showReport ? 'bg-slate-800/50 p-6 rounded-xl border border-slate-700/50' : 'max-w-2xl bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700'}`}>
+          <div className={`w-full ${showReport ? 'bg-white/50 dark:bg-slate-800/50 p-6 rounded-xl border border-slate-200 dark:border-slate-700/50' : 'max-w-2xl bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700'}`}>
             
             <div className={`grid gap-6 ${showReport ? 'grid-cols-1 md:grid-cols-4' : 'grid-cols-1'}`}>
               
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-teal-300">
+                <label className="flex items-center gap-2 text-sm font-medium text-teal-600 dark:text-teal-300">
                   <Calendar size={16} /> Date of Birth
                 </label>
                 <div className="flex gap-2">
-                  <input type="number" name="day" placeholder="Day" min={1} max={31} value={inputs.day} onChange={handleInputChange} className="w-1/4 bg-slate-900 border border-slate-600 rounded-lg px-3 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-center text-slate-100 placeholder:text-slate-500"/>
-                  <select name="month" value={inputs.month} onChange={handleInputChange} className="w-2/4 bg-slate-900 border border-slate-600 rounded-lg px-3 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-slate-100">
+                  <input type="number" name="day" placeholder="Day" min={1} max={31} value={inputs.day} onChange={handleInputChange} className="w-1/4 px-3 py-3 text-center transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"/>
+                  <select name="month" value={inputs.month} onChange={handleInputChange} className="w-2/4 px-3 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100">
                     <option value="" disabled>Month</option>
                     {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
                   </select>
-                  <input type="number" name="year" placeholder="Year" min={1900} max={2100} value={inputs.year} onChange={handleInputChange} className="w-1/4 bg-slate-900 border border-slate-600 rounded-lg px-3 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-center text-slate-100 placeholder:text-slate-500"/>
+                  <input type="number" name="year" placeholder="Year" min={1900} max={2100} value={inputs.year} onChange={handleInputChange} className="w-1/4 px-3 py-3 text-center transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"/>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-purple-300"><User size={16} /> Birth Name</label>
-                <input type="text" name="birthName" placeholder="Full Birth Certificate Name" value={inputs.birthName} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-slate-100 placeholder:text-slate-500"/>
+                <label className="flex items-center gap-2 text-sm font-medium text-purple-600 dark:text-purple-300"><User size={16} /> Birth Name</label>
+                <input type="text" name="birthName" placeholder="Full Birth Certificate Name" value={inputs.birthName} onChange={handleInputChange} className="w-full px-4 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"/>
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-amber-300"><BookOpen size={16} /> School Name</label>
-                <input type="text" name="schoolName" placeholder="Childhood School Name" value={inputs.schoolName} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-slate-100 placeholder:text-slate-500"/>
+                <label className="flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-300"><BookOpen size={16} /> School Name</label>
+                <input type="text" name="schoolName" placeholder="Childhood School Name" value={inputs.schoolName} onChange={handleInputChange} className="w-full px-4 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"/>
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-indigo-300"><User size={16} /> Current Name</label>
-                <input type="text" name="currentName" placeholder="Name known for longer" value={inputs.currentName} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none text-slate-100 placeholder:text-slate-500"/>
+                <label className="flex items-center gap-2 text-sm font-medium text-indigo-600 dark:text-indigo-300"><User size={16} /> Current Name</label>
+                <input type="text" name="currentName" placeholder="Name known for longer" value={inputs.currentName} onChange={handleInputChange} className="w-full px-4 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"/>
               </div>
             </div>
 
             {!showReport && (
-              <button onClick={() => calculate ? setShowReport(true) : alert("Please fill all fields correctly")} disabled={!calculate} className="w-full mt-8 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-900/40 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              <button onClick={() => calculate ? setShowReport(true) : alert("Please fill all fields correctly")} disabled={!calculate} className="w-full mt-8 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-900/20 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 Submit
               </button>
             )}
@@ -392,18 +418,18 @@ const handleLogout = async () => {
 
         {showReport && calculate && (
           <div className="animate-in fade-in slide-in-from-bottom-10 duration-700">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {calculate.map((item) => (
-                <div key={item.id} className="group relative bg-slate-800 border border-slate-600 hover:border-purple-500/50 rounded-xl p-5 transition-all duration-300 hover:shadow-xl hover:shadow-purple-900/10 flex flex-col justify-between">
+                <div key={item.id} className="relative flex flex-col justify-between p-5 transition-all duration-300 bg-white border shadow-sm group dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-purple-500/50 dark:hover:border-purple-500/50 rounded-xl hover:shadow-xl hover:shadow-purple-900/10">
                   <div>
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="text-teal-400 text-xs font-bold uppercase tracking-wider">{item.name}</h4>
-                      <span className="text-xs text-slate-500 font-mono">#{item.id}</span>
+                      <h4 className="text-xs font-bold tracking-wider uppercase text-teal-600 dark:text-teal-400">{item.name}</h4>
+                      <span className="text-xs font-mono text-slate-400 dark:text-slate-500">#{item.id}</span>
                     </div>
-                    <p className="text-sm text-slate-300 leading-relaxed mb-4 font-medium">{item.desc}</p>
+                    <p className="mb-4 text-sm font-medium leading-relaxed text-slate-600 dark:text-slate-300">{item.desc}</p>
                   </div>
-                  <div className="mt-2 pt-4 border-t border-slate-700 flex items-center justify-end">
-                    <div className="text-3xl font-light text-white font-mono bg-slate-900 px-4 py-1 rounded-lg border border-slate-600 shadow-inner min-w-[3rem] text-center group-hover:border-purple-500/30 group-hover:text-purple-100 transition-colors">
+                  <div className="flex items-center justify-end pt-4 mt-2 border-t border-slate-100 dark:border-slate-700">
+                    <div className="text-3xl font-light font-mono bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white px-4 py-1 rounded-lg border border-slate-200 dark:border-slate-600 shadow-inner min-w-[3rem] text-center group-hover:border-purple-500/30 group-hover:text-purple-600 dark:group-hover:text-purple-100 transition-colors">
                       {formatNumber(item.val)}
                     </div>
                   </div>
@@ -411,7 +437,7 @@ const handleLogout = async () => {
               ))}
             </div>
             <div className="mt-12 text-center">
-               <p className="text-slate-500 text-sm">Calculations based on Pythagorean and Chaldean systems. <br/>Raw sums displayed for detailed analysis.</p>
+               <p className="text-sm text-slate-500 dark:text-slate-400">Calculations based on Pythagorean and Chaldean systems. <br/>All numbers are fully reduced.</p>
             </div>
           </div>
         )}
