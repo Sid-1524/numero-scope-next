@@ -15,7 +15,6 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // In a real app, this would point to your actual authentication API
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -23,15 +22,13 @@ export default function LoginPage() {
       });
 
       if (res.ok) {
-        // Redirect on success (Standard React approach)
         window.location.href = "/app"; 
       } else {
         const data = await res.json();
         setError(data.message || "Login failed");
       }
     } catch (err) {
-      // Fallback for demo purposes if API doesn't exist
-      if (username.toLowerCase() === 'admin' && password === 'newpass@123') {
+      if (username.toLowerCase() === 'admin' && password === '1234') {
          window.location.href = "/app";
       } else {
          setError("An unexpected error occurred (or invalid demo credentials)");
@@ -42,23 +39,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-900 px-4 font-sans selection:bg-purple-500 selection:text-white">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 font-sans selection:bg-purple-500 selection:text-white transition-colors duration-300">
+      
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-xl bg-slate-800 border border-slate-700 p-8 shadow-2xl flex flex-col gap-6"
+        className="w-full max-w-sm rounded-xl bg-white border border-slate-200 p-8 shadow-2xl flex flex-col gap-6"
       >
         <div className="flex justify-center mb-2">
-          <div className="p-3 bg-purple-600/20 rounded-full shadow-lg shadow-purple-900/20">
-            <Lock className="w-8 h-8 text-purple-400" />
+          <div className="p-3 bg-purple-100 rounded-full shadow-lg shadow-purple-900/10">
+            <Lock className="w-8 h-8 text-purple-600" />
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-center bg-gradient-to-r from-purple-300 via-teal-200 to-amber-200 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 via-teal-600 to-amber-600 bg-clip-text text-transparent">
           NumeroScope Login
         </h1>
 
         {error && (
-          <div className="flex items-center gap-2 text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">
+          <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-100">
             <AlertCircle size={16} />
             <p>{error}</p>
           </div>
@@ -69,7 +67,7 @@ export default function LoginPage() {
             <input
               type="text"
               placeholder="Username"
-              className="w-full rounded-lg border border-slate-700 bg-slate-900 p-3 text-slate-100 placeholder:text-slate-500 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+              className="w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-slate-900 placeholder:text-slate-400 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -81,7 +79,7 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="Password"
-              className="w-full rounded-lg border border-slate-700 bg-slate-900 p-3 text-slate-100 placeholder:text-slate-500 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+              className="w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-slate-900 placeholder:text-slate-400 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
