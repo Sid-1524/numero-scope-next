@@ -27,6 +27,7 @@ interface ReportItem {
 
 // --- CONSTANTS & DATA ---
 
+// Pythagorean System: 1-9 (Sequential)
 const PYTHAGOREAN: Record<number, string[]> = {
   1: ['A', 'J', 'S'],
   2: ['B', 'K', 'T'],
@@ -39,6 +40,7 @@ const PYTHAGOREAN: Record<number, string[]> = {
   9: ['I', 'R']
 };
 
+// Chaldean System: 1-8 (Vibrational, No 9)
 const CHALDEAN: Record<number, string[]> = {
   1: ['A', 'I', 'J', 'Q', 'Y'],
   2: ['B', 'K', 'R'],
@@ -56,7 +58,7 @@ const MONTHS: string[] = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-// Descriptions extracted from NGA PDF
+// Descriptions extracted from PDF Pages 7-10
 const DESCRIPTIONS: Record<string, string> = {
   perception: "Relates to your personal perception and the lens through which you view the world.",
   innerChild: "Highlights experiences from your childhood and patterns that influence you as an adult.",
@@ -100,7 +102,8 @@ const cleanString = (str: string): string => str.toUpperCase().replace(/[^A-Z]/g
 const cleanStringWithSpaces = (str: string): string => str.toUpperCase().replace(/[^A-Z ]/g, '').replace(/\s+/g, ' ').trim();
 const getCharValue = (char: string, systemMap: SystemMap): number => systemMap[char] || 0;
 
-// Reduction logic (PDF Page 4): Preserve Master Numbers 11, 22 (and 33)
+// Reduction logic (PDF Page 4): Master Numbers (11, 22) are not reduced.
+// Added 33 as standard practice.
 const reduceNumber = (num: number): number => {
   if (num === 0) return 0;
   let n = num;
@@ -156,12 +159,11 @@ export default function NumeroScope() {
     const firstNameCurrent = currentNameParts[0] || "";
     const lastNameCurrent = currentNameParts[currentNameParts.length - 1] || "";
 
-    // 1. Core Variables & Life Path (PDF Page 4)
-    // "Sum the reduced Month + Day + Year"
+    // Core Variables (PDF Page 4: Sum the reduced Month + Day + Year)
     const dayNumber = reduceNumber(dayRaw);
     const monthNumber = reduceNumber(monthRaw);
     const yearNumber = reduceNumber(yearRaw);
-    const lifePath = reduceNumber(dayNumber + monthNumber + yearNumber); 
+    const lifePath = reduceNumber(dayNumber) + reduceNumber(monthNumber) + reduceNumber(yearNumber); 
 
     const calculateSum = (text: string, systemMap: SystemMap, filter: 'all' | 'vowel' | 'consonant' = 'all'): number => {
       const clean = cleanString(text);
@@ -214,9 +216,9 @@ export default function NumeroScope() {
         return sum;
     };
     
-    // --- REPORT ITEM CALCULATIONS (Based on PDF Page 7-10 Rules) ---
+    // --- REPORT ITEM CALCULATIONS (Based on PDF Rules) ---
     
-    // 1. Perception Number (Page 7): Sum of birth day and birth month -> Reduced
+    // 1. Perception (Page 7): Sum of birth day and birth month -> Reduced
     const perception = reduceNumber(dayRaw + monthRaw);
     
     // 2. Inner Child (Page 7): Sum of consonants in Birth Name (Pyth) -> Reduced
@@ -232,7 +234,6 @@ export default function NumeroScope() {
     const soulGuidance = reduceNumber(calculateSum(currentNameClean, CHAL_MAP, 'vowel'));
     
     // 6. Contribution (Page 7): Life Path + BIRTH Name (Pyth) -> Reduced
-    // *Correction from PDF*: Use Birth Name for Contribution.
     const birthNameSumPyth = reduceNumber(calculateSum(birthNameClean, PYTH_MAP));
     const contribution = reduceNumber(lifePath + birthNameSumPyth);
     
@@ -240,55 +241,52 @@ export default function NumeroScope() {
     const currentNameSumChal = reduceNumber(calculateSum(currentNameClean, CHAL_MAP));
     const power = reduceNumber(lifePath + currentNameSumChal);
     
-    // 8. Karmic Lessons (Page 8): Missing numbers from Birth Name (Pyth)
+    // 8-9. Missing Numbers (Arrays)
     const karmicLessons = getMissing(birthNameClean, PYTH_MAP, 9);
-    
-    // 9. Untapped Potential (Page 8): Missing numbers from School Name (Chal)
     const untappedPotential = getMissing(schoolNameClean, CHAL_MAP, 8);
     
-    // 10. Directing Modifier (Page 8): Value of first letter of Birth First Name (Pyth)
+    // 10. Directing Modifier (Page 8): First Letter of Birth First Name -> Reduced
     const directingModifier = firstNameBirth ? reduceNumber(getCharValue(firstNameBirth[0], PYTH_MAP)) : 0;
     
-    // 11. Foundation Number (Page 8): Value of first letter of Current First Name (Chal)
+    // 11. Foundation (Page 8): First Letter of Current First Name -> Reduced
     const foundation = firstNameCurrent ? reduceNumber(getCharValue(firstNameCurrent[0], CHAL_MAP)) : 0;
     
-    // 12. First Emotional (Page 8): Value of first vowel in Birth First Name (Pyth)
+    // 12. First Emotional (Page 8): First Vowel of Birth First Name -> Reduced
     const getFirstVowelVal = (name: string, map: SystemMap): number => {
         const match = name.split('').find(c => isVowel(c));
         return match ? getCharValue(match, map) : 0;
     };
     const firstEmotional = reduceNumber(getFirstVowelVal(firstNameBirth, PYTH_MAP));
     
-    // 13. Secretive (Page 9): Value of first vowel in Current First Name (Chal)
+    // 13. Secretive (Page 9): First Vowel of Current First Name -> Reduced
     const secretive = reduceNumber(getFirstVowelVal(firstNameCurrent, CHAL_MAP));
     
-    // 14. Finishing (Page 9): Value of last letter of Birth Last Name (Pyth)
+    // 14. Finishing (Page 9): Last Letter of Birth Last Name -> Reduced
     const finishing = lastNameBirth ? reduceNumber(getCharValue(lastNameBirth[lastNameBirth.length - 1], PYTH_MAP)) : 0;
     
-    // 15. Destination (Page 9): Value of last letter of Current Last Name (Chal)
+    // 15. Destination (Page 9): Last Letter of Current Last Name -> Reduced
     const destination = lastNameCurrent ? reduceNumber(getCharValue(lastNameCurrent[lastNameCurrent.length - 1], CHAL_MAP)) : 0;
     
-    // 16. Latent Talent (Page 9): Mode of Birth Name (Pyth)
+    // 16. Latent Talent (Page 9): Mode of Birth Name
     const latentTalent = getMode(birthNameClean, PYTH_MAP);
     
-    // 17. Inner Fire (Page 9): Mode of Current Name (Chal)
+    // 17. Inner Fire (Page 9): Mode of Current Name
     const innerFire = getMode(currentNameClean, CHAL_MAP);
     
-    // 18. Coping Style (Page 9): Sum of initials of Birth Name (Pyth) -> Reduced
+    // 18. Coping Style (Page 9): Sum of initials of Birth Name -> Reduced
     const copingStyle = reduceNumber(getInitialsSum(birthNameClean, PYTH_MAP));
     
-    // 19. Crisis Response (Page 10): Sum of initials of Current Name (Chal) -> Reduced
+    // 19. Crisis Response (Page 10): Sum of initials of Current Name -> Reduced
     const crisisResponse = reduceNumber(getInitialsSum(currentNameClean, CHAL_MAP));
     
-    // 20. Mental Approach (Page 10): Value of First Name + Value of Day (Pyth) -> Reduced
-    // PDF implies "Value" means the numerological value, so we reduce the name first.
+    // 20. Mental Approach (Page 10): Value of First Name (Pyth) + Value of Day -> Reduced
+    // PDF implies "Value" = Reduced Sum.
     const mentalApproach = reduceNumber(reduceNumber(calculateSum(firstNameBirth, PYTH_MAP)) + dayNumber);
 
-    // 21. Thought Process (Page 10): Value of First Name + Value of Day (Chal) -> Reduced
+    // 21. Thought Process (Page 10): Value of First Name (Chal) + Value of Day -> Reduced
     const thoughtProcess = reduceNumber(reduceNumber(calculateSum(firstNameCurrent, CHAL_MAP)) + dayNumber);
     
     // 22. Anchor Number (Page 10): Count of letters in Birth Name -> Reduced
-    // Reverted logic to "Counting total number of letters... and reducing"
     const anchor = reduceNumber(cleanString(birthNameClean).length);
 
     // 23. Reliability Number (Page 10): Count of letters in Current Name -> Reduced
@@ -356,7 +354,7 @@ export default function NumeroScope() {
             </button>
             <div className="w-px h-6 bg-slate-300"></div>
             <button 
-                onClick={() => handleLogout()}
+                onClick={() => handleLogout() }
                 className="flex items-center gap-2 font-medium transition-colors text-red-600 hover:text-red-700"
             >
                 <LogOut size={16} />
