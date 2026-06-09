@@ -397,7 +397,7 @@ export default function NumeroScope() {
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-indigo-600"><User size={16} /> Current Name</label>
+                <label className="flex items-center gap-2 text-sm font-medium text-indigo-600"><User size={16} /> Most Used Name</label>
                 <input type="text" name="currentName" placeholder="Name known for longer" value={inputs.currentName} onChange={handleInputChange} className="w-full px-4 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 placeholder:text-slate-400"/>
               </div>
             </div>
