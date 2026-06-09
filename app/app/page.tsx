@@ -392,8 +392,8 @@ export default function NumeroScope() {
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-amber-600"><BookOpen size={16} /> School Name</label>
-                <input type="text" name="schoolName" placeholder="Childhood School Name" value={inputs.schoolName} onChange={handleInputChange} className="w-full px-4 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 placeholder:text-slate-400"/>
+                <label className="flex items-center gap-2 text-sm font-medium text-amber-600"><BookOpen size={16} /> Name from Childhood</label>
+                <input type="text" name="schoolName" placeholder="Name from Childhood" value={inputs.schoolName} onChange={handleInputChange} className="w-full px-4 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 placeholder:text-slate-400"/>
               </div>
 
               <div className="space-y-2">
