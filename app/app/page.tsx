@@ -904,11 +904,11 @@ export default function NumeroScope() {
             <h1 className="text-2xl font-semibold tracking-tight text-[#25352e] sm:text-3xl">
               {showReport ? 'Your details' : 'New profile'}
             </h1>
-            <p className={`mt-3 text-sm leading-6 text-slate-600 sm:text-base ${showReport ? 'max-w-2xl' : 'mx-auto max-w-xl'}`}>
-              {showReport
-                ? 'Update the details below, then generate a fresh report when you are ready.'
-                : 'Enter the birth date and names for this report.'}
-            </p>
+            {showReport && (
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                Update the details below, then generate a fresh report when you are ready.
+              </p>
+            )}
           </div>
           <form
             onSubmit={(event) => {
@@ -935,12 +935,12 @@ export default function NumeroScope() {
                   <Calendar size={16} className="text-[#527c65]" /> Date of birth
                 </legend>
                 <div role="group" aria-label="Date of birth" className="grid grid-cols-[0.8fr_1.5fr_1fr] gap-2">
-                  <input aria-label="Birth day" type="number" name="day" placeholder="DD" min={1} max={31} value={inputs.day} onChange={handleInputChange} required className="min-w-0 rounded-xl border border-slate-300 bg-white px-2 py-3 text-center transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
+                  <input aria-label="Birth day" type="number" name="day" placeholder="DD" min={1} max={31} value={inputs.day} onChange={handleInputChange} required className="min-w-0 [appearance:textfield] rounded-xl border border-slate-300 bg-white px-2 py-3 text-center transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"/>
                   <select aria-label="Birth month" name="month" value={inputs.month} onChange={handleInputChange} required className="min-w-0 rounded-xl border border-slate-300 bg-white px-2 py-3 transition-colors focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20">
                     <option value="" disabled>Month</option>
                     {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
                   </select>
-                  <input aria-label="Birth year" type="number" name="year" placeholder="YYYY" min={1000} max={2100} value={inputs.year} onChange={handleInputChange} required className="min-w-0 rounded-xl border border-slate-300 bg-white px-2 py-3 text-center transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
+                  <input aria-label="Birth year" type="number" name="year" placeholder="YYYY" min={1000} max={2100} value={inputs.year} onChange={handleInputChange} required className="min-w-0 [appearance:textfield] rounded-xl border border-slate-300 bg-white px-2 py-3 text-center transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"/>
                 </div>
                 <p className="text-xs leading-5 text-slate-500">Use the date on your birth record.</p>
               </fieldset>
