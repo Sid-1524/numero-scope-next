@@ -17,7 +17,7 @@ export async function GET() {
   if (!owner) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const { rows } = await db.query(
-    `SELECT id, inputs, created_at
+    `SELECT id, inputs, result, created_at
      FROM numero_history
      WHERE owner_username = $1
      ORDER BY created_at DESC
@@ -28,6 +28,7 @@ export async function GET() {
   return NextResponse.json({ history: rows.map((row) => ({
     id: String(row.id),
     inputs: row.inputs,
+    result: row.result,
     createdAt: row.created_at,
   })) });
 }

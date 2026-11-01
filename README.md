@@ -28,6 +28,8 @@ Set `LOGIN_USERNAME`, `LOGIN_PASSWORD`, and `SALT` in a local `.env` file for lo
 
 The app stores the 20 most recent reports for the currently signed-in username in Neon. The schema is versioned in [`migrations/001_numero_history.sql`](migrations/001_numero_history.sql) and has already been applied to the linked `numero-scope` Neon project.
 
+Use the **History** button in the app header to open saved reports. Selecting a report restores its inputs and the saved calculation results.
+
 Before deploying to Vercel, add these environment variables under **Project Settings → Environment Variables** for Production, Preview, and Development:
 
 | Variable | Value |

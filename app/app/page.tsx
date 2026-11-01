@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, ChangeEvent, useEffect } from 'react';
-import { BookOpen, User, Calendar, RotateCcw, LogOut, Home } from 'lucide-react';
+import { BookOpen, User, Calendar, RotateCcw, LogOut, Home, History } from 'lucide-react';
 
 // --- TYPES ---
 
@@ -22,6 +22,7 @@ interface Inputs {
 interface HistoryEntry {
   id: string;
   inputs: Inputs;
+  result: CalculationResult;
   createdAt: string;
 }
 
@@ -312,7 +313,10 @@ export default function NumeroScope() {
   });
   const [showReport, setShowReport] = useState<boolean>(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [historyOpen, setHistoryOpen] = useState<boolean>(false);
   const [historyStatus, setHistoryStatus] = useState<string>('');
+  const [historyError, setHistoryError] = useState<string>('');
+  const [reportResult, setReportResult] = useState<CalculationResult | null>(null);
 
   const loadHistory = async () => {
     try {
@@ -320,8 +324,9 @@ export default function NumeroScope() {
       if (!response.ok) throw new Error('Unable to load saved reports');
       const data = await response.json();
       setHistory(data.history);
+      setHistoryError('');
     } catch {
-      setHistoryStatus('Saved history is temporarily unavailable.');
+      setHistoryError('Saved history is temporarily unavailable.');
     }
   };
 
@@ -332,6 +337,7 @@ export default function NumeroScope() {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setInputs(prev => ({ ...prev, [name]: value }));
+    setReportResult(null);
   };
 
   // --- CALCULATION LOGIC ---
@@ -715,6 +721,8 @@ export default function NumeroScope() {
     };
   }, [inputs]);
 
+  const displayedReport = reportResult ?? calculate;
+
   const handleLogout = async () => {
         try {
             const response = await fetch('/api/logout', { method: 'POST' });
@@ -735,6 +743,7 @@ export default function NumeroScope() {
     }
 
     setShowReport(true);
+    setReportResult(calculate);
     setHistoryStatus('Saving report…');
 
     try {
@@ -764,8 +773,26 @@ export default function NumeroScope() {
             </h1>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => {
+                setHistoryOpen(open => !open);
+                void loadHistory();
+              }}
+              aria-expanded={historyOpen}
+              aria-controls="report-history"
+              className="flex items-center gap-2 font-medium transition-colors text-slate-600 hover:text-purple-700"
+            >
+              <History size={16} />
+              <span>History</span>
+              <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700">{history.length}</span>
+            </button>
             <button 
-                onClick={() => { setInputs({ day: '', month: '', year: '', birthName: '', schoolName: '', currentName: '', houseNumber: '' }); setShowReport(false); }}
+                onClick={() => {
+                  setInputs({ day: '', month: '', year: '', birthName: '', schoolName: '', currentName: '', houseNumber: '' });
+                  setReportResult(null);
+                  setShowReport(false);
+                }}
                 className="flex items-center gap-2 transition-colors text-slate-500 hover:text-slate-900"
             >
                 <RotateCcw size={16} />
@@ -784,6 +811,47 @@ export default function NumeroScope() {
       </header>
 
       <main className="max-w-6xl p-6 mx-auto">
+        {historyOpen && (
+          <section id="report-history" className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" aria-label="Saved report history">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-800">Recent reports</h2>
+                <p className="text-sm text-slate-500">Your 20 most recent saved reports.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setHistoryOpen(false)}
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+            {historyError ? (
+              <p className="mt-4 text-sm text-red-600" role="alert">{historyError}</p>
+            ) : history.length > 0 ? (
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {history.map(entry => (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    onClick={() => {
+                      setInputs(entry.inputs);
+                      setReportResult(entry.result);
+                      setShowReport(true);
+                      setHistoryOpen(false);
+                    }}
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm transition-colors hover:border-purple-400 hover:bg-purple-50"
+                  >
+                    <span className="block font-medium text-slate-800">{entry.inputs.birthName}</span>
+                    <span className="block text-xs text-slate-500">{entry.inputs.day}/{entry.inputs.month}/{entry.inputs.year} · {new Date(entry.createdAt).toLocaleDateString()}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-slate-500">No saved reports yet. Submit a report to add it to your history.</p>
+            )}
+          </section>
+        )}
         
         {/* Input Form */}
         <section className={`transition-all duration-500 ease-in-out ${showReport ? 'mb-8 opacity-100' : 'min-h-[60vh] flex items-center justify-center opacity-100'}`}>
@@ -826,25 +894,6 @@ export default function NumeroScope() {
               </div>
             </div>
 
-            {history.length > 0 && (
-              <div className="mt-6 border-t border-slate-200 pt-5">
-                <p className="text-sm font-semibold text-slate-700">Recent reports</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {history.map((entry) => (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      onClick={() => { setInputs(entry.inputs); setShowReport(true); }}
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm transition-colors hover:border-purple-400 hover:bg-purple-50"
-                    >
-                      <span className="block font-medium text-slate-800">{entry.inputs.birthName}</span>
-                      <span className="block text-xs text-slate-500">{entry.inputs.day}/{entry.inputs.month}/{entry.inputs.year} · {new Date(entry.createdAt).toLocaleDateString()}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {historyStatus && <p className="mt-4 text-sm text-slate-500" role="status">{historyStatus}</p>}
 
             {!showReport && (
@@ -855,10 +904,10 @@ export default function NumeroScope() {
           </div>
         </section>
 
-        {showReport && calculate && (
+        {showReport && displayedReport && (
           <div className="animate-in fade-in slide-in-from-bottom-10 duration-700">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {calculate.items.map((item) => (
+              {displayedReport.items.map((item) => (
                 <div key={item.id} className="relative flex flex-col justify-between p-5 transition-all duration-300 bg-white border shadow-sm group border-slate-200 hover:border-purple-500/50 rounded-xl hover:shadow-xl hover:shadow-purple-900/10">
                   <div>
                     <div className="flex items-start justify-between mb-2">
@@ -884,25 +933,25 @@ export default function NumeroScope() {
               <div className="grid gap-4 md:grid-cols-3">
                 <article className="rounded-xl border border-slate-200 bg-white p-5">
                   <p className="text-xs font-bold uppercase tracking-wider text-teal-600">Current age</p>
-                  <p className="mt-2 text-3xl font-light">{calculate.currentAge}</p>
+                  <p className="mt-2 text-3xl font-light">{displayedReport.currentAge}</p>
                   <p className="mt-1 text-sm text-slate-500">Age on the current date</p>
                 </article>
                 <article className="rounded-xl border border-slate-200 bg-white p-5">
                   <p className="text-xs font-bold uppercase tracking-wider text-purple-600">Highlight year</p>
-                  <p className="mt-2 text-3xl font-light">{calculate.highlightYear}</p>
-                  <p className="mt-1 text-sm text-slate-500">For ages {calculate.currentAge} to {calculate.currentAge + 1}</p>
+                  <p className="mt-2 text-3xl font-light">{displayedReport.highlightYear}</p>
+                  <p className="mt-1 text-sm text-slate-500">For ages {displayedReport.currentAge} to {displayedReport.currentAge + 1}</p>
                 </article>
                 <article className="rounded-xl border border-slate-200 bg-white p-5">
                   <p className="text-xs font-bold uppercase tracking-wider text-amber-600">Current energy code</p>
                   <p className="mt-2 text-3xl font-light">
-                    {calculate.energyCode || '—'}
+                    {displayedReport.energyCode || '—'}
                     <span className="ml-2 text-xl text-slate-500">
-                      {calculate.energyCodeTotal === calculate.energyCodeNumber
-                        ? formatNumber(calculate.energyCodeNumber)
-                        : `${calculate.energyCodeTotal}/${calculate.energyCodeNumber}`}
+                      {displayedReport.energyCodeTotal === displayedReport.energyCodeNumber
+                        ? formatNumber(displayedReport.energyCodeNumber)
+                        : `${displayedReport.energyCodeTotal}/${displayedReport.energyCodeNumber}`}
                     </span>
                   </p>
-                  <p className="mt-1 text-sm text-slate-500">Age {calculate.currentAge}; based on the most-used name</p>
+                  <p className="mt-1 text-sm text-slate-500">Age {displayedReport.currentAge}; based on the most-used name</p>
                 </article>
               </div>
 
@@ -925,8 +974,8 @@ export default function NumeroScope() {
                       </tr>
                     </thead>
                     <tbody>
-                      {calculate.transitYears.map(row => (
-                        <tr key={row.age} className={row.age === calculate.currentAge ? 'bg-purple-50 font-semibold' : 'border-t border-slate-100'}>
+                      {displayedReport.transitYears.map(row => (
+                        <tr key={row.age} className={row.age === displayedReport.currentAge ? 'bg-purple-50 font-semibold' : 'border-t border-slate-100'}>
                           <td className="px-3 py-2">{row.year}</td>
                           <td className="px-3 py-2">{row.age}</td>
                           <td className="px-3 py-2">{row.physical ? `${row.physical.value} (${row.physical.letter})` : '—'}</td>
@@ -954,7 +1003,7 @@ export default function NumeroScope() {
                         <tr><th className="px-2 py-2">Step</th><th className="px-2 py-2">Letter</th><th className="px-2 py-2">Starting year</th><th className="px-2 py-2">Overtone</th><th className="px-2 py-2">Milestone year</th></tr>
                       </thead>
                       <tbody>
-                        {calculate.milestones.map(row => (
+                        {displayedReport.milestones.map(row => (
                           <tr key={row.step} className="border-t border-slate-100">
                             <td className="px-2 py-2">{row.step}</td><td className="px-2 py-2">{row.letter}</td>
                             <td className="px-2 py-2">{row.startYear}</td><td className="px-2 py-2">{row.overtone}</td><td className="px-2 py-2">{row.milestoneYear}</td>
@@ -969,7 +1018,7 @@ export default function NumeroScope() {
                   <summary className="cursor-pointer font-semibold text-slate-800">Red-letter ages</summary>
                   <p className="mt-3 text-sm text-slate-500">Cumulative letter values repeat through age 100; ages appearing in multiple name parts are highlighted.</p>
                   <div className="mt-4 space-y-3">
-                    {calculate.redLetterAges.map(segment => (
+                    {displayedReport.redLetterAges.map(segment => (
                       <div key={segment.name}>
                         <h3 className="text-sm font-semibold text-slate-700">{segment.name}</h3>
                         <p className="text-sm leading-6 text-slate-600">{segment.ages.join(', ')}</p>
@@ -977,13 +1026,13 @@ export default function NumeroScope() {
                     ))}
                     <div className="border-t border-slate-100 pt-3">
                       <h3 className="text-sm font-semibold text-purple-700">Ages repeated across name parts</h3>
-                      <p className="text-sm leading-6 text-slate-600">{calculate.overlappingAges.length ? calculate.overlappingAges.join(', ') : 'None'}</p>
+                      <p className="text-sm leading-6 text-slate-600">{displayedReport.overlappingAges.length ? displayedReport.overlappingAges.join(', ') : 'None'}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-slate-700">Consecutive age runs</h3>
                       <p className="text-sm leading-6 text-slate-600">
-                        {calculate.significantAgeRuns.length
-                          ? calculate.significantAgeRuns.map(run => `${run[0]}-${run[run.length - 1]}`).join(', ')
+                        {displayedReport.significantAgeRuns.length
+                          ? displayedReport.significantAgeRuns.map(run => `${run[0]}-${run[run.length - 1]}`).join(', ')
                           : 'None'}
                       </p>
                     </div>
@@ -1001,7 +1050,7 @@ export default function NumeroScope() {
                 <h3 className="text-lg font-semibold">Expression style</h3>
                 <p className="mt-1 text-sm text-slate-500">Strength is classified against the largest component: Strong at 60% or more, Weak below 25%, otherwise Average.</p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  {calculate.expressionComponents.map(component => (
+                  {displayedReport.expressionComponents.map(component => (
                     <div key={component.name} className="rounded-lg bg-slate-50 p-4">
                       <p className="text-sm font-semibold text-slate-700">{component.name}</p>
                       <p className="mt-1 text-2xl font-light">{component.count}</p>
@@ -1020,11 +1069,11 @@ export default function NumeroScope() {
                       <tr><th className="px-3 py-2">Realm</th><th className="px-3 py-2">Creative</th><th className="px-3 py-2">Adaptability</th><th className="px-3 py-2">Grounded</th><th className="px-3 py-2">Realm total</th></tr>
                     </thead>
                     <tbody>
-                      {calculate.energyRealms.realms.map(realm => (
+                      {displayedReport.energyRealms.realms.map(realm => (
                         <tr key={realm.name} className="border-t border-slate-100">
                           <th className="px-3 py-3 font-semibold">{realm.name}</th>
                           {['Creative', 'Adaptability', 'Grounded'].map(attribute => {
-                            const letters = calculate.energyRealms.letters.filter(letter => letter.realm === realm.name && letter.attribute === attribute);
+                            const letters = displayedReport.energyRealms.letters.filter(letter => letter.realm === realm.name && letter.attribute === attribute);
                             const total = letters.reduce((sum, letter) => sum + letter.value, 0);
                             return (
                               <td key={attribute} className="px-3 py-3">
@@ -1040,14 +1089,14 @@ export default function NumeroScope() {
                   </table>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-3">
-                  {calculate.energyRealms.attributes.map(attribute => (
+                  {displayedReport.energyRealms.attributes.map(attribute => (
                     <span key={attribute.name} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
                       {attribute.name}: {attribute.total} / {formatNumber(attribute.reduced)}
                     </span>
                   ))}
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {calculate.energyRealms.letters.map((letter, index) => (
+                  {displayedReport.energyRealms.letters.map((letter, index) => (
                     <span key={`${letter.letter}-${index}`} title={`${letter.realm} / ${letter.attribute}`} className="rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-600">
                       {letter.letter} ({letter.value})
                     </span>
@@ -1059,13 +1108,13 @@ export default function NumeroScope() {
             <section className="mt-14 space-y-5">
               <div>
                 <h2 className="text-2xl font-bold text-slate-900">Pythagorean Square (Psychomatrix)</h2>
-                <p className="mt-1 text-sm text-slate-500">Working numbers: {calculate.psychomatrix.workingNumbers.join(', ')}. Final digit string: {calculate.psychomatrix.digitString}</p>
+                <p className="mt-1 text-sm text-slate-500">Working numbers: {displayedReport.psychomatrix.workingNumbers.join(', ')}. Final digit string: {displayedReport.psychomatrix.digitString}</p>
               </div>
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
                 <div className="grid grid-cols-3 gap-2">
                   {[1, 4, 7, 2, 5, 8, 3, 6, 9].map(number => {
                     const cell = PSYCHOMATRIX_CELLS[number - 1];
-                    const count = calculate.psychomatrix.counts[number];
+                    const count = displayedReport.psychomatrix.counts[number];
                     return (
                       <article key={number} className="min-h-32 rounded-xl border border-slate-200 bg-white p-3 text-center">
                         <p className="text-xs font-bold uppercase tracking-wide text-teal-700">{cell.name}</p>
@@ -1077,7 +1126,7 @@ export default function NumeroScope() {
                   })}
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {calculate.psychomatrix.lines.map(line => (
+                  {displayedReport.psychomatrix.lines.map(line => (
                     <article key={line.name} className="rounded-xl border border-slate-200 bg-white p-4">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="font-semibold text-slate-800">{line.name}</h3>
@@ -1101,7 +1150,7 @@ export default function NumeroScope() {
                     <tr><th className="px-4 py-3">Bridge</th><th className="px-4 py-3">First number</th><th className="px-4 py-3">Second number</th><th className="px-4 py-3">Bridge number</th></tr>
                   </thead>
                   <tbody>
-                    {calculate.bridges.map(bridge => (
+                    {displayedReport.bridges.map(bridge => (
                       <tr key={bridge.name} className="border-t border-slate-100">
                         <th className="px-4 py-3 font-semibold text-slate-700">{bridge.name}</th>
                         <td className="px-4 py-3">{bridge.leftLabel}: {formatNumber(bridge.leftValue)}</td>
@@ -1116,19 +1165,19 @@ export default function NumeroScope() {
 
             <section className="mt-14 rounded-xl border border-slate-200 bg-white p-5">
               <h2 className="text-2xl font-bold text-slate-900">Home Number</h2>
-              {calculate.houseNumber ? (
+              {displayedReport.houseNumber ? (
                 <div className="mt-3 flex flex-wrap items-end gap-6">
                   <div>
                     <p className="text-sm text-slate-500">House / unit entered</p>
-                    <p className="text-lg font-medium">{calculate.houseNumber.input}</p>
+                    <p className="text-lg font-medium">{displayedReport.houseNumber.input}</p>
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">Sum of digits and Pythagorean letter values</p>
-                    <p className="text-lg font-medium">{calculate.houseNumber.total}</p>
+                    <p className="text-lg font-medium">{displayedReport.houseNumber.total}</p>
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">Reduced home number</p>
-                    <p className="text-3xl font-light text-purple-700">{calculate.houseNumber.number}</p>
+                    <p className="text-3xl font-light text-purple-700">{displayedReport.houseNumber.number}</p>
                   </div>
                 </div>
               ) : (
