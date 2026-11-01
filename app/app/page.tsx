@@ -1306,9 +1306,6 @@ export default function NumeroScope() {
               )}
             </section>
 
-            <div className="mt-12 text-center">
-               <p className="text-sm text-slate-500">Calculations aligned with the provided NumeroScope Organizer references.</p>
-            </div>
           </div>
         )}
       </main>
