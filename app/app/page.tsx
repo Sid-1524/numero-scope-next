@@ -925,7 +925,6 @@ export default function NumeroScope() {
               <div className="h-1.5 overflow-hidden rounded-full bg-[#edf0eb]" role="progressbar" aria-label="Required profile details" aria-valuemin={0} aria-valuemax={4} aria-valuenow={completedFields}>
                 <div className="h-full rounded-full bg-[#527c65] transition-[width]" style={{ width: `${completedFields * 25}%` }} />
               </div>
-              <p className="mt-2 text-xs text-slate-500">The house or unit number is optional.</p>
             </div>
             
             <div className="grid gap-x-5 gap-y-6 md:grid-cols-2 xl:grid-cols-5">
