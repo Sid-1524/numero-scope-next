@@ -794,7 +794,7 @@ export default function NumeroScope() {
       
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-[#e4e9e2] bg-[#fbfcf9]/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <a href="/app" className="flex min-w-0 items-center gap-3 rounded-lg text-[#315d4c]">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9efe7]">
               <Compass size={21} strokeWidth={1.8} />
@@ -843,7 +843,7 @@ export default function NumeroScope() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-9 lg:px-8">
+      <main className="mx-auto max-w-screen-2xl px-4 py-6 sm:px-6 sm:py-9 lg:px-8">
         {historyOpen && (
           <section id="report-history" className="mb-6 rounded-2xl border border-[#e2e7df] bg-white p-5 shadow-sm sm:p-6" aria-label="Saved report history">
             <div className="flex items-center justify-between gap-4">
@@ -898,16 +898,16 @@ export default function NumeroScope() {
         )}
         
         {/* Input Form */}
-        <section id="profile-form" className={`scroll-mt-24 transition-all duration-300 ${showReport ? 'mb-8' : 'mx-auto max-w-3xl'}`}>
-          <div className={`mb-6 ${showReport ? 'px-1' : 'text-center sm:mb-8'}`}>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#52715f]">{showReport ? 'Profile details' : 'Start with the essentials'}</p>
-            <h1 className="text-3xl font-semibold tracking-tight text-[#25352e] sm:text-4xl">
-              {showReport ? 'Your details' : 'Build your number profile'}
+        <section id="profile-form" className="mb-8 scroll-mt-24 transition-all duration-300">
+          <div className={`mb-6 ${showReport ? 'px-1' : 'sm:mb-6'}`}>
+            {showReport && <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#52715f]">Profile details</p>}
+            <h1 className="text-2xl font-semibold tracking-tight text-[#25352e] sm:text-3xl">
+              {showReport ? 'Your details' : 'New profile'}
             </h1>
             <p className={`mt-3 text-sm leading-6 text-slate-600 sm:text-base ${showReport ? 'max-w-2xl' : 'mx-auto max-w-xl'}`}>
               {showReport
                 ? 'Update the details below, then generate a fresh report when you are ready.'
-                : 'Enter a birth date and the names you have used. We’ll bring your core numbers and annual cycles together in one report.'}
+                : 'Enter the birth date and names for this report.'}
             </p>
           </div>
           <form
@@ -930,7 +930,7 @@ export default function NumeroScope() {
             
             <div className="grid gap-x-5 gap-y-6 md:grid-cols-2 xl:grid-cols-5">
               
-              <fieldset className="space-y-2">
+              <fieldset className="min-w-0 space-y-2">
                 <legend className="flex items-center gap-2 text-sm font-semibold text-[#34463c]">
                   <Calendar size={16} className="text-[#527c65]" /> Date of birth
                 </legend>
@@ -945,25 +945,25 @@ export default function NumeroScope() {
                 <p className="text-xs leading-5 text-slate-500">Use the date on your birth record.</p>
               </fieldset>
 
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <label htmlFor="birthName" className="flex items-center gap-2 text-sm font-semibold text-[#34463c]"><User size={16} className="text-[#527c65]" /> Birth name</label>
                 <input id="birthName" type="text" name="birthName" autoComplete="name" placeholder="Full name at birth" value={inputs.birthName} onChange={handleInputChange} required className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
                 <p className="text-xs leading-5 text-slate-500">Enter your complete name as recorded at birth.</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <label htmlFor="schoolName" className="flex items-center gap-2 text-sm font-semibold text-[#34463c]"><BookOpen size={16} className="text-[#527c65]" /> Childhood name</label>
                 <input id="schoolName" type="text" name="schoolName" placeholder="Name used as a child" value={inputs.schoolName} onChange={handleInputChange} required className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
                 <p className="text-xs leading-5 text-slate-500">The name people used for you growing up.</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <label htmlFor="currentName" className="flex items-center gap-2 text-sm font-semibold text-[#34463c]"><User size={16} className="text-[#527c65]" /> Most-used name</label>
                 <input id="currentName" type="text" name="currentName" placeholder="Name you use most" value={inputs.currentName} onChange={handleInputChange} required className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
                 <p className="text-xs leading-5 text-slate-500">Use the name you have gone by for the longest.</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <label htmlFor="houseNumber" className="flex items-center gap-2 text-sm font-semibold text-[#34463c]"><Home size={16} className="text-[#527c65]" /> House / unit <span className="text-xs font-normal text-slate-500">Optional</span></label>
                 <input id="houseNumber" type="text" name="houseNumber" placeholder="For example, 17F" value={inputs.houseNumber} onChange={handleInputChange} className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
                 <p className="text-xs leading-5 text-slate-500">Enter only the house or apartment number.</p>
