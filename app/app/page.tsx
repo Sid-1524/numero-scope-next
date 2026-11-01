@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, ChangeEvent, useEffect } from 'react';
-import { BookOpen, User, Calendar, RotateCcw, LogOut, Home, History, Trash2 } from 'lucide-react';
+import { BookOpen, User, Calendar, RotateCcw, LogOut, Home, History, Trash2, Compass, ArrowRight } from 'lucide-react';
 
 // --- TYPES ---
 
@@ -340,6 +340,13 @@ export default function NumeroScope() {
     setInputs(prev => ({ ...prev, [name]: value }));
     setReportResult(null);
   };
+
+  const completedFields = [
+    inputs.day && inputs.month && inputs.year,
+    inputs.birthName.trim(),
+    inputs.schoolName.trim(),
+    inputs.currentName.trim(),
+  ].filter(Boolean).length;
 
   // --- CALCULATION LOGIC ---
   const calculate = useMemo<CalculationResult | null>(() => {
@@ -723,6 +730,7 @@ export default function NumeroScope() {
   }, [inputs]);
 
   const displayedReport = reportResult ?? calculate;
+  const profileName = inputs.birthName.trim() || 'your profile';
 
   const handleLogout = async () => {
         try {
@@ -782,17 +790,21 @@ export default function NumeroScope() {
 
   // --- RENDER ---
   return (
-    <div className="min-h-screen font-sans bg-slate-50 text-slate-900 selection:bg-purple-500 selection:text-white pb-20">
+    <div className="min-h-screen bg-[#f5f6f2] font-sans text-[#202c29] selection:bg-[#dce9df] selection:text-[#203a31]">
       
       {/* Header */}
-      <header className="sticky top-0 z-50 p-6 border-b shadow-lg bg-white/80 backdrop-blur-md border-slate-200">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-transparent bg-gradient-to-r from-purple-500 via-teal-500 to-amber-500 bg-clip-text">
-              NumeroScope
-            </h1>
-          </div>
-          <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-50 border-b border-[#e4e9e2] bg-[#fbfcf9]/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <a href="/app" className="flex min-w-0 items-center gap-3 rounded-lg text-[#315d4c]">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9efe7]">
+              <Compass size={21} strokeWidth={1.8} />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-base font-semibold leading-5 tracking-tight">NumeroScope</span>
+              <span className="hidden text-xs text-slate-500 sm:block">Personal number profile</span>
+            </span>
+          </a>
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <button
               type="button"
               onClick={() => {
@@ -801,41 +813,42 @@ export default function NumeroScope() {
               }}
               aria-expanded={historyOpen}
               aria-controls="report-history"
-              className="flex items-center gap-2 font-medium transition-colors text-slate-600 hover:text-purple-700"
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-[#eef2eb] hover:text-[#315d4c]"
             >
-              <History size={16} />
-              <span>History</span>
-              <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700">{history.length}</span>
+              <History size={17} />
+              <span className="hidden sm:inline">History</span>
+              <span className="rounded-full bg-[#e9efe7] px-2 py-0.5 text-xs font-semibold text-[#315d4c]">{history.length}</span>
             </button>
-            <button 
-                onClick={() => {
-                  setInputs({ day: '', month: '', year: '', birthName: '', schoolName: '', currentName: '', houseNumber: '' });
-                  setReportResult(null);
-                  setShowReport(false);
-                }}
-                className="flex items-center gap-2 transition-colors text-slate-500 hover:text-slate-900"
+            <button
+              type="button"
+              onClick={() => {
+                setInputs({ day: '', month: '', year: '', birthName: '', schoolName: '', currentName: '', houseNumber: '' });
+                setReportResult(null);
+                setShowReport(false);
+              }}
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-[#eef2eb] hover:text-[#315d4c]"
             >
-                <RotateCcw size={16} />
-                <span className="text-sm font-medium">Reset</span>
+              <RotateCcw size={16} />
+              <span className="hidden sm:inline">New profile</span>
             </button>
-            <div className="w-px h-6 bg-slate-300"></div>
-            <button 
-                onClick={() => handleLogout() }
-                className="flex items-center gap-2 font-medium transition-colors text-red-600 hover:text-red-700"
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-red-50 hover:text-red-700"
             >
-                <LogOut size={16} />
-                <span>Logout</span>
+              <LogOut size={16} />
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl p-6 mx-auto">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-9 lg:px-8">
         {historyOpen && (
-          <section id="report-history" className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" aria-label="Saved report history">
+          <section id="report-history" className="mb-6 rounded-2xl border border-[#e2e7df] bg-white p-5 shadow-sm sm:p-6" aria-label="Saved report history">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-slate-800">Recent reports</h2>
+                <h2 className="text-lg font-semibold text-[#25352e]">Saved reports</h2>
                 <p className="text-sm text-slate-500">Your 20 most recent saved reports.</p>
               </div>
               <button
@@ -860,7 +873,7 @@ export default function NumeroScope() {
                         setShowReport(true);
                         setHistoryOpen(false);
                       }}
-                      className="min-w-0 flex-1 px-3 py-2 text-left text-sm transition-colors hover:bg-purple-50"
+                      className="min-w-0 flex-1 px-3 py-2 text-left text-sm transition-colors hover:bg-[#f1f5ef]"
                     >
                       <span className="block truncate font-medium text-slate-800">{entry.inputs.birthName}</span>
                       <span className="block text-xs text-slate-500">{entry.inputs.day}/{entry.inputs.month}/{entry.inputs.year} · {new Date(entry.createdAt).toLocaleDateString()}</span>
@@ -885,70 +898,142 @@ export default function NumeroScope() {
         )}
         
         {/* Input Form */}
-        <section className={`transition-all duration-500 ease-in-out ${showReport ? 'mb-8 opacity-100' : 'min-h-[60vh] flex items-center justify-center opacity-100'}`}>
-          <div className={`w-full ${showReport ? 'bg-white/50 p-6 rounded-xl border border-slate-200' : 'max-w-2xl bg-white p-8 rounded-2xl shadow-xl border border-slate-200'}`}>
+        <section id="profile-form" className={`scroll-mt-24 transition-all duration-300 ${showReport ? 'mb-8' : 'mx-auto max-w-3xl'}`}>
+          <div className={`mb-6 ${showReport ? 'px-1' : 'text-center sm:mb-8'}`}>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#52715f]">{showReport ? 'Profile details' : 'Start with the essentials'}</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-[#25352e] sm:text-4xl">
+              {showReport ? 'Your details' : 'Build your number profile'}
+            </h1>
+            <p className={`mt-3 text-sm leading-6 text-slate-600 sm:text-base ${showReport ? 'max-w-2xl' : 'mx-auto max-w-xl'}`}>
+              {showReport
+                ? 'Update the details below, then generate a fresh report when you are ready.'
+                : 'Enter a birth date and the names you have used. We’ll bring your core numbers and annual cycles together in one report.'}
+            </p>
+          </div>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void submitReport();
+            }}
+            className="w-full rounded-2xl border border-[#e2e7df] bg-white p-5 shadow-[0_12px_38px_rgba(32,44,41,0.06)] sm:rounded-3xl sm:p-8"
+          >
+            <div className="mb-7">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold text-[#34463c]">Profile details</h2>
+                <span className="text-xs font-medium text-slate-500">{completedFields} of 4 required</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-[#edf0eb]" role="progressbar" aria-label="Required profile details" aria-valuemin={0} aria-valuemax={4} aria-valuenow={completedFields}>
+                <div className="h-full rounded-full bg-[#527c65] transition-[width]" style={{ width: `${completedFields * 25}%` }} />
+              </div>
+              <p className="mt-2 text-xs text-slate-500">The house or unit number is optional.</p>
+            </div>
             
-            <div className={`grid gap-6 ${showReport ? 'grid-cols-1 md:grid-cols-5' : 'grid-cols-1'}`}>
+            <div className="grid gap-x-5 gap-y-6 md:grid-cols-2 xl:grid-cols-5">
               
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-teal-600">
-                  <Calendar size={16} /> Date of Birth
-                </label>
-                <div className="flex gap-2">
-                  <input type="number" name="day" placeholder="Day" min={1} max={31} value={inputs.day} onChange={handleInputChange} className="w-1/4 px-3 py-3 text-center transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 placeholder:text-slate-400"/>
-                  <select name="month" value={inputs.month} onChange={handleInputChange} className="w-2/4 px-3 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500">
+              <fieldset className="space-y-2">
+                <legend className="flex items-center gap-2 text-sm font-semibold text-[#34463c]">
+                  <Calendar size={16} className="text-[#527c65]" /> Date of birth
+                </legend>
+                <div role="group" aria-label="Date of birth" className="grid grid-cols-[0.8fr_1.5fr_1fr] gap-2">
+                  <input aria-label="Birth day" type="number" name="day" placeholder="DD" min={1} max={31} value={inputs.day} onChange={handleInputChange} required className="min-w-0 rounded-xl border border-slate-300 bg-white px-2 py-3 text-center transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
+                  <select aria-label="Birth month" name="month" value={inputs.month} onChange={handleInputChange} required className="min-w-0 rounded-xl border border-slate-300 bg-white px-2 py-3 transition-colors focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20">
                     <option value="" disabled>Month</option>
                     {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
                   </select>
-                  <input type="number" name="year" placeholder="Year" min={1900} max={2100} value={inputs.year} onChange={handleInputChange} className="w-1/4 px-3 py-3 text-center transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 placeholder:text-slate-400"/>
+                  <input aria-label="Birth year" type="number" name="year" placeholder="YYYY" min={1000} max={2100} value={inputs.year} onChange={handleInputChange} required className="min-w-0 rounded-xl border border-slate-300 bg-white px-2 py-3 text-center transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
                 </div>
+                <p className="text-xs leading-5 text-slate-500">Use the date on your birth record.</p>
+              </fieldset>
+
+              <div className="space-y-2">
+                <label htmlFor="birthName" className="flex items-center gap-2 text-sm font-semibold text-[#34463c]"><User size={16} className="text-[#527c65]" /> Birth name</label>
+                <input id="birthName" type="text" name="birthName" autoComplete="name" placeholder="Full name at birth" value={inputs.birthName} onChange={handleInputChange} required className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
+                <p className="text-xs leading-5 text-slate-500">Enter your complete name as recorded at birth.</p>
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-purple-600"><User size={16} /> Birth Name</label>
-                <input type="text" name="birthName" placeholder="Full Birth Certificate Name" value={inputs.birthName} onChange={handleInputChange} className="w-full px-4 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 placeholder:text-slate-400"/>
+                <label htmlFor="schoolName" className="flex items-center gap-2 text-sm font-semibold text-[#34463c]"><BookOpen size={16} className="text-[#527c65]" /> Childhood name</label>
+                <input id="schoolName" type="text" name="schoolName" placeholder="Name used as a child" value={inputs.schoolName} onChange={handleInputChange} required className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
+                <p className="text-xs leading-5 text-slate-500">The name people used for you growing up.</p>
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-amber-600"><BookOpen size={16} /> Childhood Name</label>
-                <input type="text" name="schoolName" placeholder="Name from Childhood" value={inputs.schoolName} onChange={handleInputChange} className="w-full px-4 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 placeholder:text-slate-400"/>
+                <label htmlFor="currentName" className="flex items-center gap-2 text-sm font-semibold text-[#34463c]"><User size={16} className="text-[#527c65]" /> Most-used name</label>
+                <input id="currentName" type="text" name="currentName" placeholder="Name you use most" value={inputs.currentName} onChange={handleInputChange} required className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
+                <p className="text-xs leading-5 text-slate-500">Use the name you have gone by for the longest.</p>
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-indigo-600"><User size={16} /> Most Used Name</label>
-                <input type="text" name="currentName" placeholder="Name known for longer" value={inputs.currentName} onChange={handleInputChange} className="w-full px-4 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 placeholder:text-slate-400"/>
-              </div>
-
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-emerald-600"><Home size={16} /> House / Unit (Optional)</label>
-                <input type="text" name="houseNumber" placeholder="e.g. 17F" value={inputs.houseNumber} onChange={handleInputChange} className="w-full px-4 py-3 transition-all bg-white border outline-none rounded-lg border-slate-300 focus:ring-2 focus:ring-purple-500 placeholder:text-slate-400"/>
+                <label htmlFor="houseNumber" className="flex items-center gap-2 text-sm font-semibold text-[#34463c]"><Home size={16} className="text-[#527c65]" /> House / unit <span className="text-xs font-normal text-slate-500">Optional</span></label>
+                <input id="houseNumber" type="text" name="houseNumber" placeholder="For example, 17F" value={inputs.houseNumber} onChange={handleInputChange} className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 transition-colors placeholder:text-slate-400 focus:border-[#527c65] focus:ring-2 focus:ring-[#527c65]/20"/>
+                <p className="text-xs leading-5 text-slate-500">Enter only the house or apartment number.</p>
               </div>
             </div>
 
-            {historyStatus && <p className="mt-4 text-sm text-slate-500" role="status">{historyStatus}</p>}
+            <div className="mt-7 flex flex-col gap-3 border-t border-[#edf0eb] pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm leading-5 text-slate-500" role="status" aria-live="polite">
+                {historyStatus || (calculate
+                  ? 'Your details are ready. You can update them before creating the report.'
+                  : completedFields < 4
+                    ? 'Complete the birth date and three name fields to continue.'
+                    : 'Check that the date is valid and each name contains English letters.')}
+              </p>
 
-            {!showReport && (
-              <button onClick={submitReport} disabled={!calculate} className="w-full mt-8 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-900/20 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                Submit
+              <button type="submit" disabled={!calculate} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#315d4c] px-5 py-3 font-semibold text-white shadow-sm transition-colors hover:bg-[#274c3d] active:bg-[#203f33] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 sm:min-w-56">
+                {showReport ? 'Save new report' : 'Generate my report'}
+                <ArrowRight size={17} />
               </button>
-            )}
-          </div>
+            </div>
+          </form>
         </section>
 
         {showReport && displayedReport && (
           <div className="animate-in fade-in slide-in-from-bottom-10 duration-700">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <section className="mb-6 rounded-2xl border border-[#dce6db] bg-[#eaf0e8] p-5 sm:p-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#52715f]">Your report</p>
+              <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-semibold tracking-tight text-[#25352e] sm:text-3xl">{profileName}</h2>
+                  <p className="mt-1 text-sm text-[#52655b]">Birth date · {inputs.day}/{inputs.month}/{inputs.year}</p>
+                </div>
+                <a href="#profile-form" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[#cbd9cb] bg-white/80 px-4 py-2 text-sm font-medium text-[#315d4c] transition-colors hover:bg-white">
+                  <User size={16} />
+                  Edit details
+                </a>
+              </div>
+            </section>
+
+            <nav aria-label="Report sections" className="sticky top-[65px] z-30 -mx-4 mb-8 overflow-x-auto border-y border-[#e4e9e2] bg-[#f5f6f2]/95 px-4 py-3 backdrop-blur-md sm:top-[69px] sm:mx-0 sm:rounded-xl sm:border sm:px-3">
+              <ul className="flex min-w-max items-center gap-2">
+                {[
+                  ['core-numbers', 'Core numbers'],
+                  ['annual-cycles', 'Annual cycles'],
+                  ['name-patterns', 'Name patterns'],
+                  ['psychomatrix', 'Psychomatrix'],
+                  ['bridge-numbers', 'Bridge numbers'],
+                  ['home-number', 'Home number'],
+                ].map(([id, label]) => (
+                  <li key={id}>
+                    <a href={`#${id}`} className="inline-flex min-h-9 items-center rounded-lg px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-white hover:text-[#315d4c]">
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <div id="core-numbers" className="scroll-mt-32 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {displayedReport.items.map((item) => (
-                <div key={item.id} className="relative flex flex-col justify-between p-5 transition-all duration-300 bg-white border shadow-sm group border-slate-200 hover:border-purple-500/50 rounded-xl hover:shadow-xl hover:shadow-purple-900/10">
+                <div key={item.id} className="group relative flex flex-col justify-between rounded-2xl border border-[#e2e7df] bg-white p-5 shadow-[0_6px_20px_rgba(32,44,41,0.04)] transition-shadow hover:shadow-[0_12px_28px_rgba(32,44,41,0.09)]">
                   <div>
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="text-xs font-bold tracking-wider uppercase text-teal-600">{item.name}</h4>
+                      <h3 className="text-xs font-bold tracking-wider uppercase text-[#52715f]">{item.name}</h3>
                       <span className="text-xs font-mono text-slate-400">#{item.id}</span>
                     </div>
                     <p className="mb-4 text-sm font-medium leading-relaxed text-slate-600">{item.desc}</p>
                   </div>
                   <div className="flex items-center justify-end pt-4 mt-2 border-t border-slate-100">
-                    <div className="text-3xl font-light font-mono bg-slate-50 text-slate-900 px-4 py-1 rounded-lg border border-slate-200 shadow-inner min-w-[3rem] text-center group-hover:border-purple-500/30 group-hover:text-purple-600 transition-colors">
+                    <div className="min-w-[3rem] rounded-lg border border-[#e7ebe5] bg-[#f6f7f4] px-4 py-1 text-center font-mono text-3xl font-light text-[#315d4c]">
                       {formatNumber(item.val)}
                     </div>
                   </div>
@@ -956,24 +1041,25 @@ export default function NumeroScope() {
               ))}
             </div>
 
-            <section className="mt-14 space-y-5">
+            <section id="annual-cycles" className="scroll-mt-32 mt-14 space-y-5">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Annual Cycles & Current Phase</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#52715f]">02 · Timing</p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#25352e]">Annual cycles & current phase</h2>
                 <p className="mt-1 text-sm text-slate-500">Name transits use the Pythagorean values and the birth-name segments.</p>
               </div>
               <div className="grid gap-4 md:grid-cols-3">
                 <article className="rounded-xl border border-slate-200 bg-white p-5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-teal-600">Current age</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#52715f]">Current age</p>
                   <p className="mt-2 text-3xl font-light">{displayedReport.currentAge}</p>
                   <p className="mt-1 text-sm text-slate-500">Age on the current date</p>
                 </article>
                 <article className="rounded-xl border border-slate-200 bg-white p-5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-purple-600">Highlight year</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#52715f]">Highlight year</p>
                   <p className="mt-2 text-3xl font-light">{displayedReport.highlightYear}</p>
                   <p className="mt-1 text-sm text-slate-500">For ages {displayedReport.currentAge} to {displayedReport.currentAge + 1}</p>
                 </article>
                 <article className="rounded-xl border border-slate-200 bg-white p-5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-amber-600">Current energy code</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#52715f]">Current energy code</p>
                   <p className="mt-2 text-3xl font-light">
                     {displayedReport.energyCode || '—'}
                     <span className="ml-2 text-xl text-slate-500">
@@ -1006,7 +1092,7 @@ export default function NumeroScope() {
                     </thead>
                     <tbody>
                       {displayedReport.transitYears.map(row => (
-                        <tr key={row.age} className={row.age === displayedReport.currentAge ? 'bg-purple-50 font-semibold' : 'border-t border-slate-100'}>
+                        <tr key={row.age} className={row.age === displayedReport.currentAge ? 'bg-[#eef4ec] font-semibold' : 'border-t border-slate-100'}>
                           <td className="px-3 py-2">{row.year}</td>
                           <td className="px-3 py-2">{row.age}</td>
                           <td className="px-3 py-2">{row.physical ? `${row.physical.value} (${row.physical.letter})` : '—'}</td>
@@ -1056,7 +1142,7 @@ export default function NumeroScope() {
                       </div>
                     ))}
                     <div className="border-t border-slate-100 pt-3">
-                      <h3 className="text-sm font-semibold text-purple-700">Ages repeated across name parts</h3>
+                      <h3 className="text-sm font-semibold text-[#426c58]">Ages repeated across name parts</h3>
                       <p className="text-sm leading-6 text-slate-600">{displayedReport.overlappingAges.length ? displayedReport.overlappingAges.join(', ') : 'None'}</p>
                     </div>
                     <div>
@@ -1072,9 +1158,10 @@ export default function NumeroScope() {
               </div>
             </section>
 
-            <section className="mt-14 space-y-5">
+            <section id="name-patterns" className="scroll-mt-32 mt-14 space-y-5">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Name Patterns</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#52715f]">03 · Character</p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#25352e]">Name patterns</h2>
                 <p className="mt-1 text-sm text-slate-500">These profiles use the full birth name and the letter classifications in the organizer.</p>
               </div>
               <article className="rounded-xl border border-slate-200 bg-white p-5">
@@ -1085,7 +1172,7 @@ export default function NumeroScope() {
                     <div key={component.name} className="rounded-lg bg-slate-50 p-4">
                       <p className="text-sm font-semibold text-slate-700">{component.name}</p>
                       <p className="mt-1 text-2xl font-light">{component.count}</p>
-                      <p className="text-sm text-purple-700">{component.strength}</p>
+                      <p className="text-sm text-[#426c58]">{component.strength}</p>
                     </div>
                   ))}
                 </div>
@@ -1136,9 +1223,10 @@ export default function NumeroScope() {
               </article>
             </section>
 
-            <section className="mt-14 space-y-5">
+            <section id="psychomatrix" className="scroll-mt-32 mt-14 space-y-5">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Pythagorean Square (Psychomatrix)</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#52715f]">04 · Birth-date chart</p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#25352e]">Pythagorean square</h2>
                 <p className="mt-1 text-sm text-slate-500">Working numbers: {displayedReport.psychomatrix.workingNumbers.join(', ')}. Final digit string: {displayedReport.psychomatrix.digitString}</p>
               </div>
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
@@ -1148,8 +1236,8 @@ export default function NumeroScope() {
                     const count = displayedReport.psychomatrix.counts[number];
                     return (
                       <article key={number} className="min-h-32 rounded-xl border border-slate-200 bg-white p-3 text-center">
-                        <p className="text-xs font-bold uppercase tracking-wide text-teal-700">{cell.name}</p>
-                        <p className="mt-2 text-2xl font-mono text-purple-700">{count > 0 ? String(number).repeat(count) : '—'}</p>
+                        <p className="text-xs font-bold uppercase tracking-wide text-[#52715f]">{cell.name}</p>
+                        <p className="mt-2 text-2xl font-mono text-[#315d4c]">{count > 0 ? String(number).repeat(count) : '—'}</p>
                         <p className="mt-1 text-xs text-slate-500">{count} {count === 1 ? 'digit' : 'digits'}</p>
                         <p className="mt-2 text-xs text-slate-500">{cell.description}</p>
                       </article>
@@ -1161,7 +1249,7 @@ export default function NumeroScope() {
                     <article key={line.name} className="rounded-xl border border-slate-200 bg-white p-4">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="font-semibold text-slate-800">{line.name}</h3>
-                        <span className="rounded-md bg-purple-50 px-2 py-1 font-mono text-purple-700">{line.count}</span>
+                        <span className="rounded-md bg-[#eef4ec] px-2 py-1 font-mono text-[#315d4c]">{line.count}</span>
                       </div>
                       <p className="mt-2 text-sm text-slate-500">{line.description}</p>
                     </article>
@@ -1170,9 +1258,10 @@ export default function NumeroScope() {
               </div>
             </section>
 
-            <section className="mt-14 space-y-5">
+            <section id="bridge-numbers" className="scroll-mt-32 mt-14 space-y-5">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Bridge Numbers</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#52715f]">05 · Connections</p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#25352e]">Bridge numbers</h2>
                 <p className="mt-1 text-sm text-slate-500">Each bridge is the absolute difference between its two core numbers. Name-based bridge values use the birth name.</p>
               </div>
               <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -1186,7 +1275,7 @@ export default function NumeroScope() {
                         <th className="px-4 py-3 font-semibold text-slate-700">{bridge.name}</th>
                         <td className="px-4 py-3">{bridge.leftLabel}: {formatNumber(bridge.leftValue)}</td>
                         <td className="px-4 py-3">{bridge.rightLabel}: {formatNumber(bridge.rightValue)}</td>
-                        <td className="px-4 py-3 font-mono font-semibold text-purple-700">{bridge.value}</td>
+                        <td className="px-4 py-3 font-mono font-semibold text-[#315d4c]">{bridge.value}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1194,8 +1283,9 @@ export default function NumeroScope() {
               </div>
             </section>
 
-            <section className="mt-14 rounded-xl border border-slate-200 bg-white p-5">
-              <h2 className="text-2xl font-bold text-slate-900">Home Number</h2>
+            <section id="home-number" className="scroll-mt-32 mt-14 rounded-2xl border border-[#e2e7df] bg-white p-5 sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#52715f]">06 · Your space</p>
+              <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#25352e]">Home number</h2>
               {displayedReport.houseNumber ? (
                 <div className="mt-3 flex flex-wrap items-end gap-6">
                   <div>
@@ -1208,7 +1298,7 @@ export default function NumeroScope() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">Reduced home number</p>
-                    <p className="text-3xl font-light text-purple-700">{displayedReport.houseNumber.number}</p>
+                    <p className="text-3xl font-light text-[#315d4c]">{displayedReport.houseNumber.number}</p>
                   </div>
                 </div>
               ) : (
