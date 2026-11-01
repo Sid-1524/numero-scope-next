@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 
 export async function POST(req: NextRequest) {
   const { username, password } = await req.json();
-  console.log("Using credentials:", { username, password });
 
   const validUser = process.env.LOGIN_USERNAME;
   const validPass = process.env.LOGIN_PASSWORD;
