@@ -1072,12 +1072,12 @@ export default function NumeroScope() {
                 </article>
               </div>
 
-              <details className="rounded-xl border border-slate-200 bg-white p-5">
-                <summary className="cursor-pointer font-semibold text-slate-800">Essence number timeline (birth to age 100)</summary>
+              <div className="rounded-xl border border-slate-200 bg-white p-5">
+                <h3 className="font-semibold text-slate-800">Essence number timeline (birth to age 100)</h3>
                 <p className="mt-3 text-sm text-slate-500">
                   Each letter remains active for its Pythagorean value in years. The hidden essence is the sum of active first, middle, and last-name letters; 11 and 22 remain master numbers.
                 </p>
-                <div className="mt-4 max-h-[28rem] overflow-auto rounded-lg border border-slate-200">
+                <div className="mt-4 overflow-x-auto rounded-lg border border-slate-200">
                   <table className="w-full min-w-[760px] text-left text-sm">
                     <thead className="sticky top-0 bg-slate-100 text-xs uppercase text-slate-600">
                       <tr>
@@ -1108,13 +1108,13 @@ export default function NumeroScope() {
                 {!getNameParts(inputs.birthName).middle && (
                   <p className="mt-3 text-sm text-slate-500">No middle name was entered; its transit is left blank.</p>
                 )}
-              </details>
+              </div>
 
               <div className="grid gap-5 lg:grid-cols-2">
-                <details className="rounded-xl border border-slate-200 bg-white p-5">
-                  <summary className="cursor-pointer font-semibold text-slate-800">Milestone years & overtones</summary>
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <h3 className="font-semibold text-slate-800">Milestone years & overtones</h3>
                   <p className="mt-3 text-sm text-slate-500">The birth year advances by its reduced digit sum once for every letter in the birth name.</p>
-                  <div className="mt-4 max-h-80 overflow-auto">
+                  <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead className="sticky top-0 bg-slate-100 text-xs uppercase text-slate-600">
                         <tr><th className="px-2 py-2">Step</th><th className="px-2 py-2">Letter</th><th className="px-2 py-2">Starting year</th><th className="px-2 py-2">Overtone</th><th className="px-2 py-2">Milestone year</th></tr>
@@ -1129,10 +1129,10 @@ export default function NumeroScope() {
                       </tbody>
                     </table>
                   </div>
-                </details>
+                </div>
 
-                <details className="rounded-xl border border-slate-200 bg-white p-5">
-                  <summary className="cursor-pointer font-semibold text-slate-800">Red-letter ages</summary>
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <h3 className="font-semibold text-slate-800">Red-letter ages</h3>
                   <p className="mt-3 text-sm text-slate-500">Cumulative letter values repeat through age 100; ages appearing in multiple name parts are highlighted.</p>
                   <div className="mt-4 space-y-3">
                     {displayedReport.redLetterAges.map(segment => (
@@ -1154,7 +1154,7 @@ export default function NumeroScope() {
                       </p>
                     </div>
                   </div>
-                </details>
+                </div>
               </div>
             </section>
 
