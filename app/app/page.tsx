@@ -922,9 +922,6 @@ export default function NumeroScope() {
                 <h2 className="text-sm font-semibold text-[#34463c]">Profile details</h2>
                 <span className="text-xs font-medium text-slate-500">{completedFields} of 4 required</span>
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-[#edf0eb]" role="progressbar" aria-label="Required profile details" aria-valuemin={0} aria-valuemax={4} aria-valuenow={completedFields}>
-                <div className="h-full rounded-full bg-[#527c65] transition-[width]" style={{ width: `${completedFields * 25}%` }} />
-              </div>
             </div>
             
             <div className="grid gap-x-5 gap-y-6 md:grid-cols-2 xl:grid-cols-5">
