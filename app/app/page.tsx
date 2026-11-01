@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, ChangeEvent, useEffect } from 'react';
-import { BookOpen, User, Calendar, RotateCcw, LogOut, Home, History } from 'lucide-react';
+import { BookOpen, User, Calendar, RotateCcw, LogOut, Home, History, Trash2 } from 'lucide-react';
 
 // --- TYPES ---
 
@@ -316,6 +316,7 @@ export default function NumeroScope() {
   const [historyOpen, setHistoryOpen] = useState<boolean>(false);
   const [historyStatus, setHistoryStatus] = useState<string>('');
   const [historyError, setHistoryError] = useState<string>('');
+  const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
   const [reportResult, setReportResult] = useState<CalculationResult | null>(null);
 
   const loadHistory = async () => {
@@ -760,6 +761,25 @@ export default function NumeroScope() {
     }
   };
 
+  const deleteHistoryEntry = async (entry: HistoryEntry) => {
+    if (!window.confirm(`Delete the saved report for ${entry.inputs.birthName}? This cannot be undone.`)) return;
+
+    setDeletingHistoryId(entry.id);
+    setHistoryError('');
+    try {
+      const response = await fetch(`/api/history?id=${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.message || 'Unable to delete saved report');
+      }
+      setHistory(current => current.filter(item => item.id !== entry.id));
+    } catch (error) {
+      setHistoryError(error instanceof Error ? error.message : 'Unable to delete saved report.');
+    } finally {
+      setDeletingHistoryId(null);
+    }
+  };
+
   // --- RENDER ---
   return (
     <div className="min-h-screen font-sans bg-slate-50 text-slate-900 selection:bg-purple-500 selection:text-white pb-20">
@@ -831,20 +851,31 @@ export default function NumeroScope() {
             ) : history.length > 0 ? (
               <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {history.map(entry => (
-                  <button
-                    key={entry.id}
-                    type="button"
-                    onClick={() => {
-                      setInputs(entry.inputs);
-                      setReportResult(entry.result);
-                      setShowReport(true);
-                      setHistoryOpen(false);
-                    }}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm transition-colors hover:border-purple-400 hover:bg-purple-50"
-                  >
-                    <span className="block font-medium text-slate-800">{entry.inputs.birthName}</span>
-                    <span className="block text-xs text-slate-500">{entry.inputs.day}/{entry.inputs.month}/{entry.inputs.year} · {new Date(entry.createdAt).toLocaleDateString()}</span>
-                  </button>
+                  <div key={entry.id} className="flex items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInputs(entry.inputs);
+                        setReportResult(entry.result);
+                        setShowReport(true);
+                        setHistoryOpen(false);
+                      }}
+                      className="min-w-0 flex-1 px-3 py-2 text-left text-sm transition-colors hover:bg-purple-50"
+                    >
+                      <span className="block truncate font-medium text-slate-800">{entry.inputs.birthName}</span>
+                      <span className="block text-xs text-slate-500">{entry.inputs.day}/{entry.inputs.month}/{entry.inputs.year} · {new Date(entry.createdAt).toLocaleDateString()}</span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Delete report for ${entry.inputs.birthName}`}
+                      title="Delete saved report"
+                      disabled={deletingHistoryId === entry.id}
+                      onClick={() => void deleteHistoryEntry(entry)}
+                      className="flex items-center justify-center border-l border-slate-200 px-3 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 ))}
               </div>
             ) : (

@@ -51,3 +51,29 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ id: String(rows[0].id), createdAt: rows[0].created_at }, { status: 201 });
 }
+
+export async function DELETE(request: NextRequest) {
+  const owner = await getHistoryOwner();
+  if (!owner) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+  const id = request.nextUrl.searchParams.get("id");
+  if (
+    !id ||
+    !/^[1-9]\d{0,18}$/.test(id) ||
+    (id.length === 19 && id > "9223372036854775807")
+  ) {
+    return NextResponse.json({ message: "Invalid history entry ID" }, { status: 400 });
+  }
+
+  const { rowCount } = await db.query(
+    `DELETE FROM numero_history
+     WHERE id = $1 AND owner_username = $2`,
+    [id, owner],
+  );
+
+  if (rowCount === 0) {
+    return NextResponse.json({ message: "History entry not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ message: "History entry deleted" });
+}
