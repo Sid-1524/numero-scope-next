@@ -13,8 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NumeroScope | Your personal number profile",
-  description: "Explore your numerology profile, annual cycles, and name patterns.",
+  title: "NumeroScope",
 };
 
 export default function RootLayout({
