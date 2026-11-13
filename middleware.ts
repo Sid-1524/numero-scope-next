@@ -8,7 +8,7 @@ async function verifyToken(token: string) {
   try {
     await jwtVerify(token, SECRET);
     return true;
-  } catch (err) {
+  } catch {
     return false;
   }
 }
