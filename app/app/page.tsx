@@ -70,6 +70,7 @@ interface PsychomatrixLine {
 
 interface BridgeNumber {
   name: string;
+  description: string;
   leftLabel: string;
   leftValue: number;
   rightLabel: string;
@@ -385,7 +386,10 @@ export default function NumeroScope() {
 
     // Core variables use the birth date's summed digits.
     const dayNumber = reduceNumber(dayRaw);
-    const lifePath = reduceNumber(dayRaw + monthRaw + yearRaw);
+    const birthDateDigitSum = `${dayRaw}${monthRaw}${yearRaw}`
+      .split('')
+      .reduce((sum, digit) => sum + Number(digit), 0);
+    const lifePath = reduceNumber(birthDateDigitSum);
 
     const calculateSum = (text: string, systemMap: SystemMap, filter: 'all' | 'vowel' | 'consonant' = 'all'): number => {
       const clean = cleanString(text);
@@ -692,13 +696,69 @@ export default function NumeroScope() {
     const pythagoreanExpression = reduceNumber(heartsDesire + innerChild);
     const chaldeanExpression = reduceNumber(calculateSum(birthNameClean, CHAL_MAP));
     const bridges: BridgeNumber[] = [
-      { name: 'Life Path / Soul Gift', leftLabel: 'Life Path', leftValue: lifePath, rightLabel: 'Birthday', rightValue: dayNumber, value: Math.abs(lifePath - dayNumber) },
-      { name: 'Life Path / Pythagorean Expression', leftLabel: 'Life Path', leftValue: lifePath, rightLabel: 'Pythagorean Expression', rightValue: pythagoreanExpression, value: Math.abs(lifePath - pythagoreanExpression) },
-      { name: "Heart's Desire / Inner Child", leftLabel: "Heart's Desire", leftValue: heartsDesire, rightLabel: 'Inner Child', rightValue: innerChild, value: Math.abs(heartsDesire - innerChild) },
-      { name: "Heart's Desire / Pythagorean Expression", leftLabel: "Heart's Desire", leftValue: heartsDesire, rightLabel: 'Pythagorean Expression', rightValue: pythagoreanExpression, value: Math.abs(heartsDesire - pythagoreanExpression) },
-      { name: 'Life Path / Chaldean Expression', leftLabel: 'Life Path', leftValue: lifePath, rightLabel: 'Chaldean Expression', rightValue: chaldeanExpression, value: Math.abs(lifePath - chaldeanExpression) },
-      { name: 'Soul Guidance / Impression', leftLabel: 'Soul Guidance', leftValue: birthSoulGuidance, rightLabel: 'Impression', rightValue: birthImpression, value: Math.abs(birthSoulGuidance - birthImpression) },
-      { name: 'Soul Guidance / Chaldean Expression', leftLabel: 'Soul Guidance', leftValue: birthSoulGuidance, rightLabel: 'Chaldean Expression', rightValue: chaldeanExpression, value: Math.abs(birthSoulGuidance - chaldeanExpression) },
+      {
+        name: 'Soul Mission / Soul Gift',
+        description: 'Use your natural birthday strengths to support your life direction.',
+        leftLabel: 'Soul Mission (Life Path)',
+        leftValue: lifePath,
+        rightLabel: 'Soul Gift (Birthday)',
+        rightValue: dayNumber,
+        value: Math.abs(lifePath - dayNumber),
+      },
+      {
+        name: 'Soul Mission / Karma Vehicle (Pythagorean)',
+        description: 'Align your life purpose with the abilities expressed by your birth name.',
+        leftLabel: 'Soul Mission (Life Path)',
+        leftValue: lifePath,
+        rightLabel: 'Karma Vehicle (Pythagorean Expression)',
+        rightValue: pythagoreanExpression,
+        value: Math.abs(lifePath - pythagoreanExpression),
+      },
+      {
+        name: "Heart's Desire / Inner Child (Pythagorean)",
+        description: 'Bring inner desires into harmony with patterns shaped by early life.',
+        leftLabel: "Heart's Desire",
+        leftValue: heartsDesire,
+        rightLabel: 'Inner Child',
+        rightValue: innerChild,
+        value: Math.abs(heartsDesire - innerChild),
+      },
+      {
+        name: "Heart's Desire / Karma Vehicle (Pythagorean)",
+        description: 'Connect what motivates you inwardly with your natural abilities.',
+        leftLabel: "Heart's Desire",
+        leftValue: heartsDesire,
+        rightLabel: 'Karma Vehicle (Pythagorean Expression)',
+        rightValue: pythagoreanExpression,
+        value: Math.abs(heartsDesire - pythagoreanExpression),
+      },
+      {
+        name: 'Soul Mission / Karma Vehicle (Chaldean)',
+        description: "Align your life direction with your birth name's Chaldean expression.",
+        leftLabel: 'Soul Mission (Life Path)',
+        leftValue: lifePath,
+        rightLabel: 'Karma Vehicle (Chaldean Expression)',
+        rightValue: chaldeanExpression,
+        value: Math.abs(lifePath - chaldeanExpression),
+      },
+      {
+        name: 'Soul Inner Guidance / Impression (Chaldean)',
+        description: 'Connect inner guidance with the personality you present to others.',
+        leftLabel: 'Soul Inner Guidance',
+        leftValue: birthSoulGuidance,
+        rightLabel: 'Impression',
+        rightValue: birthImpression,
+        value: Math.abs(birthSoulGuidance - birthImpression),
+      },
+      {
+        name: 'Soul Inner Guidance / Karma Vehicle (Chaldean)',
+        description: 'Let inner guidance shape how you express your abilities in the world.',
+        leftLabel: 'Soul Inner Guidance',
+        leftValue: birthSoulGuidance,
+        rightLabel: 'Karma Vehicle (Chaldean Expression)',
+        rightValue: chaldeanExpression,
+        value: Math.abs(birthSoulGuidance - chaldeanExpression),
+      },
     ];
 
     const houseCharacters = inputs.houseNumber.toUpperCase().match(/[A-Z0-9]/g) ?? [];
@@ -869,7 +929,7 @@ export default function NumeroScope() {
                       type="button"
                       onClick={() => {
                         setInputs(entry.inputs);
-                        setReportResult(entry.result);
+                        setReportResult(null);
                         setShowReport(true);
                         setHistoryOpen(false);
                       }}
@@ -1268,7 +1328,10 @@ export default function NumeroScope() {
                   <tbody>
                     {displayedReport.bridges.map(bridge => (
                       <tr key={bridge.name} className="border-t border-slate-100">
-                        <th className="px-4 py-3 font-semibold text-slate-700">{bridge.name}</th>
+                        <th className="px-4 py-3 text-left">
+                          <p className="font-semibold text-slate-700">{bridge.name}</p>
+                          <p className="mt-1 font-normal text-slate-500">{bridge.description}</p>
+                        </th>
                         <td className="px-4 py-3">{bridge.leftLabel}: {formatNumber(bridge.leftValue)}</td>
                         <td className="px-4 py-3">{bridge.rightLabel}: {formatNumber(bridge.rightValue)}</td>
                         <td className="px-4 py-3 font-mono font-semibold text-[#315d4c]">{bridge.value}</td>
